@@ -9,13 +9,17 @@ SOURCE=Main.c                  # Change this to the proper source file.
 OUTPUT=Main                    # Change this to the desired output file.
 
 function help_message() {
+  local exit_code="$1"
+
   echo "Usage.: $0 <ACTION>"
   echo ""
   echo "  Avaliable actions:"
+  echo "    -h, --help:      Displays this message."
   echo "    -b, --build:     Compiles the code."
   echo "    -r, --run:       Runs the code."
   echo "    -c, --clean:     Removes the compilation resuls."
-  exit 1
+
+  exit "$exit_code"
 }
 
 if [ ! $# -eq 1 ]; then
@@ -34,7 +38,10 @@ case $OPTION in
   -c | --clean)
     rm -f $OUTPUT
     ;;
+  -h | --help)
+    help_message 0
+    ;;
   *)
-    help_message
+    help_message 1
     ;;
 esac
