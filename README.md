@@ -9,3 +9,13 @@
 
 > Prototype of a complete digital system for managing environments using IoT for tracking
 > measurements such as temperature and humidity levels.
+
+# License
+
+Released under the [MIT](https://github.com/gersonfaneto/DataStructures/blob/main/LICENSE)
+license by:
+
+- [Camila Queiroz Boa Morte Pereira](https://github.com/)
+- [Everton Vinicius da Silva Ferreira](https://github.com/Yamis4n)
+- [Gerson Ferreira dos Anjos Neto](https://github.com/gersonfaneto)
+- [Kauan Caio de Arruda Farias](https://github.com/)
