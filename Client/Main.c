@@ -75,20 +75,12 @@ int main(void) {
   if (bytes_written > 0) {
     printf("Sent %d bytes: %s\n", bytes_written, DATA_TO_SEND);
   }
-  else {
-    printf("[ERROR]: Failed to send data!");
-    return 1;
-  }
 
   /* Receive data. */
   int bytes_read = receiveData(fd, buffer, sizeof(buffer));
   if (bytes_read > 0) {
     buffer[bytes_read] = '\0';
     printf("Received %d bytes: %s\n", bytes_read, buffer);
-  }
-  else {
-    printf("[ERROR]: Failed to receive data!");
-    return 1;
   }
 
   /* Close the serial port. */
