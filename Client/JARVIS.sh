@@ -17,7 +17,7 @@ function help_message() {
   echo "    -h, --help:      Displays this message."
   echo "    -b, --build:     Compiles the code."
   echo "    -r, --run:       Runs the code."
-  echo "    -c, --clean:     Removes the compilation resuls."
+  echo "    -c, --clean:     Removes the compilation results."
 
   exit "$exit_code"
 }
