@@ -15,7 +15,7 @@
 Released under the [MIT](https://github.com/gersonfaneto/DataStructures/blob/main/LICENSE)
 license by:
 
-- [Camila Queiroz Boa Morte Pereira](https://github.com/)
+- [Camila Queiroz Boa Morte Pereira](https://github.com/camilaqPereira)
 - [Everton Vinicius da Silva Ferreira](https://github.com/Yamis4n)
 - [Gerson Ferreira dos Anjos Neto](https://github.com/gersonfaneto)
-- [Kauan Caio de Arruda Farias](https://github.com/)
+- [Kauan Caio de Arruda Farias](https://github.com/kakafariaZ)
