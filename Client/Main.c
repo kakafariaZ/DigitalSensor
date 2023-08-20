@@ -18,10 +18,10 @@ int configureSerialPort(int fd) {
   cfsetispeed(&settings, B9600);
 
   /* Set the data bits, stop bits, and parity. */
-  settings.c_cflag &= ~PARENB; // No parity bit.
-  settings.c_cflag &= ~CSTOPB; // Single stop bit.
-  settings.c_cflag &= ~CSIZE;  // Clear size of data bits.
-  settings.c_cflag |= CS8;     // 8 bits of data.
+  settings.c_cflag &= ~PARENB;  // No parity bit.
+  settings.c_cflag &= ~CSTOPB;  // Single stop bit.
+  settings.c_cflag &= ~CSIZE;   // Clear size of data bits.
+  settings.c_cflag |= CS8;      // 8 bits of data.
 
   /* Apply the settings. */
   if (tcsetattr(fd, TCSANOW, &settings) != 0) {
