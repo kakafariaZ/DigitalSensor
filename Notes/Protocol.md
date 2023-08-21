@@ -2,6 +2,8 @@
 
 > Here is described the protocol chosen for the communication between the devices.
 
+<!-- TODO: Definir detalhes do protocolo de comuniação. -->
+
 ###### Request commands
 
 | Code |                       Description                        |
