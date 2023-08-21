@@ -1,8 +1,16 @@
-module DigitalSensor(
-	input wire a, b,
-	output wire c
+module DigitalSensor (
+    input  wire clk,
+    input  wire reset,
+    output wire led
 );
 
-	assign c = a & b;
+  ClockDivider #(
+      .COUNTER_MAX (50000000),
+      .COUNTER_SIZE(25)
+  ) CD0 (
+      .clk(clk),
+      .reset(reset),
+      .div_clk(led)
+  );
 
-endmodule	
+endmodule
