@@ -9,21 +9,28 @@
 #define MAX_BUFFER_SIZE 255
 
 int configureSerialPort(int fd) {
+  /**
+   * `struct` that hold the settings
+   * for the serial communication.
+   */
   struct termios settings;
 
-  tcgetattr(fd, &settings);
+  /* Get the current applied settings. */
+  /* tcgetattr(fd, &settings); */
 
-  /* Set the baud rate to 9600. */
-  cfsetospeed(&settings, B9600);
-  cfsetispeed(&settings, B9600);
-
-  /* Set the data bits, stop bits, and parity. */
-  settings.c_cflag &= ~PARENB;  // No parity bit.
-  settings.c_cflag &= ~CSTOPB;  // Single stop bit.
-  settings.c_cflag &= ~CSIZE;   // Clear size of data bits.
-  settings.c_cflag |= CS8;      // 8 bits of data.
+  /* Set up serial port:
+   *   - B9600: Baud rate of 9600 bits per second.
+   *   - CS8: 8 bits of data.
+   *   - CLOCAL: Ignore modem status line.
+   *   - CREAD: Enable receiver.
+   */
+  settings.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
+  settings.c_iflag = IGNPAR;
+  settings.c_oflag = 0;
+  settings.c_lflag = 0;
 
   /* Apply the settings. */
+  tcflush(fd, TCIFLUSH);
   if (tcsetattr(fd, TCSANOW, &settings) != 0) {
     printf("[ERROR]: Couldn't configure serial port settings!\n");
     return -1;
@@ -56,8 +63,13 @@ int main(void) {
   int fd;
   char buffer[MAX_BUFFER_SIZE];
 
-  /* Open the serial port. */
-  fd = open(SERIAL_PORT, O_RDWR);
+  /**
+   * Open the serial port with some flags:
+   *   - O_RDWR: Open for read and writing.
+   *   - O_NDELAY: Disable delay while reading/writing.
+   *   - O_NOCTTY: Do not assign controlling terminal.
+   */
+  fd = open(SERIAL_PORT, O_RDWR | O_NDELAY | O_NOCTTY);
 
   if (fd < 0) {
     printf("[ERROR]: Couldn't open targeted serial port!\n");
