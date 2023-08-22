@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE30F23C7
-set_global_assignment -name TOP_LEVEL_ENTITY DigitalSensor
+set_global_assignment -name TOP_LEVEL_ENTITY UART_RX
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 21.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "10:21:33  AUGUST 18, 2023"
 set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.1 Lite Edition"
@@ -48,8 +48,6 @@ set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
-set_global_assignment -name VERILOG_FILE ClockDivider.v
-set_global_assignment -name VERILOG_FILE DigitalSensor.v
 set_global_assignment -name EDA_SIMULATION_TOOL "QuestaSim (Verilog)"
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
@@ -63,6 +61,9 @@ set_global_assignment -name EDA_TEST_BENCH_NAME ClockDividerTB -section_id eda_s
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id ClockDividerTB
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME ClockDividerTB -section_id ClockDividerTB
 set_global_assignment -name EDA_TEST_BENCH_FILE ClockDividerTB.v -section_id ClockDividerTB
+set_global_assignment -name VERILOG_FILE UART_RX.v
+set_global_assignment -name VERILOG_FILE ClockDivider.v
+set_global_assignment -name VERILOG_FILE DigitalSensor.v
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top

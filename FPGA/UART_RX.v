@@ -1,5 +1,5 @@
 module UART_RX #(
-    parameter CLKS_PER_BIT
+    parameter CLKS_PER_BIT = 87
 ) (
     input        i_Clock,
     input        i_Rx_Serial,
