@@ -1,124 +1,117 @@
 /**
-* This file contains the UART Transmitter. This transmitter is able to transmit 8 bits of serial 
+* This file contains the UART Transmitter. This transmitter is able to transmit 8 bits of serial
 * data, one start bit, one stop bit, and no parity bit. When transmit is complete o_Tx_done will
 * be driven high for one clock cycle.
 *
 * Set Parameter `CLKS_PER_BIT` as follows:
 * CLKS_PER_BIT = (Frequency of i_Clock) / (Frequency of UART)
-* Example: 10 MHz Clock and 115200 Baud UART
-* (10000000) / (115200) = 87 CLKS_PER_BIT
+* Example: 10 MHz Clock and 115,200 Baud UART
+* (10,000,000) / (115,200) = 87 CLKS_PER_BIT
 *
-* Source: http://www.nandland.com
+* Source: https://nandland.com/uart-serial-port-module/
+*
+* NOTE: Minor modifications were made to the original code for better understanding of the
+* working group.
 */
 
 module UART_TX #(
     parameter CLKS_PER_BIT = 87
 ) (
-    input            i_Clock,
-    input            i_Tx_DV,
-    input      [7:0] i_Tx_Byte,
-    output           o_Tx_Active,
-    output reg       o_Tx_Serial,
-    output           o_Tx_Done
+    input  wire       clock,
+    input  wire       has_data,
+    input  wire [7:0] data_to_send,
+    output wire       is_transmitting,
+    output reg        sending_bit,
+    output wire       transmission_done
 );
 
-  parameter s_IDLE = 3'b000;
-  parameter s_TX_START_BIT = 3'b001;
-  parameter s_TX_DATA_BITS = 3'b010;
-  parameter s_TX_STOP_BIT = 3'b011;
-  parameter s_CLEANUP = 3'b100;
+  localparam IDLE = 3'b000,
+             START_BIT = 3'b001,
+             DATA_BITS = 3'b010,
+             STOP_BIT = 3'b011,
+             CLEANUP = 3'b100;
 
-  reg [2:0] r_SM_Main = 0;
-  reg [7:0] r_Clock_Count = 0;
-  reg [2:0] r_Bit_Index = 0;
-  reg [7:0] r_Tx_Data = 0;
-  reg       r_Tx_Done = 0;
-  reg       r_Tx_Active = 0;
+  reg [2:0] current_state = 0;
+  reg [2:0] current_bit = 0;
+  reg [7:0] counter = 0;
+  reg [7:0] r_data_to_send = 0;
+  reg       r_transmission_done = 0;
+  reg       r_is_transmitting = 0;
 
-  always @(posedge i_Clock) begin
+  always @(posedge clock) begin
+    case (current_state)
+      IDLE: begin
+        counter <= 0;
+        current_bit <= 0;
+        sending_bit <= 1'b1;
+        r_transmission_done <= 1'b0;
 
-    case (r_SM_Main)
-      s_IDLE: begin
-        o_Tx_Serial   <= 1'b1;  // Drive Line High for Idle
-        r_Tx_Done     <= 1'b0;
-        r_Clock_Count <= 0;
-        r_Bit_Index   <= 0;
-
-        if (i_Tx_DV == 1'b1) begin
-          r_Tx_Active <= 1'b1;
-          r_Tx_Data   <= i_Tx_Byte;
-          r_SM_Main   <= s_TX_START_BIT;
-        end else r_SM_Main <= s_IDLE;
-      end  // case: s_IDLE
-
-
-      // Send out Start Bit. Start bit = 0
-      s_TX_START_BIT: begin
-        o_Tx_Serial <= 1'b0;
-
-        // Wait CLKS_PER_BIT-1 clock cycles for start bit to finish
-        if (r_Clock_Count < CLKS_PER_BIT - 1) begin
-          r_Clock_Count <= r_Clock_Count + 1;
-          r_SM_Main     <= s_TX_START_BIT;
+        if (has_data == 1'b1) begin
+          r_is_transmitting <= 1'b1;
+          r_data_to_send <= data_to_send;
+          current_state <= START_BIT;
         end else begin
-          r_Clock_Count <= 0;
-          r_SM_Main     <= s_TX_DATA_BITS;
+          current_state <= IDLE;
         end
-      end  // case: s_TX_START_BIT
-
-
-      // Wait CLKS_PER_BIT-1 clock cycles for data bits to finish         
-      s_TX_DATA_BITS: begin
-        o_Tx_Serial <= r_Tx_Data[r_Bit_Index];
-
-        if (r_Clock_Count < CLKS_PER_BIT - 1) begin
-          r_Clock_Count <= r_Clock_Count + 1;
-          r_SM_Main     <= s_TX_DATA_BITS;
-        end else begin
-          r_Clock_Count <= 0;
-
-          // Check if we have sent out all bits
-          if (r_Bit_Index < 7) begin
-            r_Bit_Index <= r_Bit_Index + 1;
-            r_SM_Main   <= s_TX_DATA_BITS;
-          end else begin
-            r_Bit_Index <= 0;
-            r_SM_Main   <= s_TX_STOP_BIT;
-          end
-        end
-      end  // case: s_TX_DATA_BITS
-
-
-      // Send out Stop bit.  Stop bit = 1
-      s_TX_STOP_BIT: begin
-        o_Tx_Serial <= 1'b1;
-
-        // Wait CLKS_PER_BIT-1 clock cycles for Stop bit to finish
-        if (r_Clock_Count < CLKS_PER_BIT - 1) begin
-          r_Clock_Count <= r_Clock_Count + 1;
-          r_SM_Main     <= s_TX_STOP_BIT;
-        end else begin
-          r_Tx_Done     <= 1'b1;
-          r_Clock_Count <= 0;
-          r_SM_Main     <= s_CLEANUP;
-          r_Tx_Active   <= 1'b0;
-        end
-      end  // case: s_Tx_STOP_BIT
-
-
-      // Stay here 1 clock
-      s_CLEANUP: begin
-        r_Tx_Done <= 1'b1;
-        r_SM_Main <= s_IDLE;
       end
 
+      START_BIT: begin
+        sending_bit <= 1'b0;
 
-      default: r_SM_Main <= s_IDLE;
+        if (counter < CLKS_PER_BIT - 1) begin
+          counter       <= counter + 1;
+          current_state <= START_BIT;
+        end else begin
+          counter       <= 0;
+          current_state <= DATA_BITS;
+        end
+      end
 
+      DATA_BITS: begin
+        sending_bit <= data_to_send[current_bit];
+
+        if (counter < CLKS_PER_BIT - 1) begin
+          counter       <= counter + 1;
+          current_state <= DATA_BITS;
+        end else begin
+          counter <= 0;
+
+          if (current_bit < 7) begin
+            current_bit   <= current_bit + 1;
+            current_state <= DATA_BITS;
+          end else begin
+            current_bit   <= 0;
+            current_state <= STOP_BIT;
+          end
+        end
+      end
+
+      STOP_BIT: begin
+        sending_bit <= 1'b1;
+
+        if (counter < CLKS_PER_BIT - 1) begin
+          counter       <= counter + 1;
+          current_state <= STOP_BIT;
+        end else begin
+          r_transmission_done <= 1'b1;
+          counter             <= 0;
+          current_state       <= CLEANUP;
+          r_is_transmitting   <= 1'b0;
+        end
+      end
+
+      CLEANUP: begin
+        r_transmission_done <= 1'b1;
+        current_state <= IDLE;
+      end
+
+      default: begin
+        current_state <= IDLE;
+      end
     endcase
   end
 
-  assign o_Tx_Active = r_Tx_Active;
-  assign o_Tx_Done   = r_Tx_Done;
+  assign is_transmitting   = r_is_transmitting;
+  assign transmission_done = r_transmission_done;
 
 endmodule
