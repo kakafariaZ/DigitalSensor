@@ -5,8 +5,9 @@
 #include <unistd.h>
 
 #define SERIAL_PORT "/dev/ttyS0"
-#define DATA_TO_SEND "Hello, World!"
 #define MAX_BUFFER_SIZE 255
+
+const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
 
 int configureSerialPort(int fd) {
   /**
@@ -39,8 +40,8 @@ int configureSerialPort(int fd) {
   return 0;
 }
 
-int sendData(int fd, const char *data) {
-  int bytes_written = write(fd, data, strlen(data));
+int sendData(int fd, const void *data, size_t size) {
+  int bytes_written = write(fd, data, size);
 
   if (bytes_written < 0) {
     printf("[ERROR]: Failed to write data to serial port!\n");
@@ -49,8 +50,8 @@ int sendData(int fd, const char *data) {
   return bytes_written;
 }
 
-int receiveData(int fd, char *buffer, int buffer_size) {
-  int bytes_read = read(fd, buffer, buffer_size);
+int receiveData(int fd, void *buffer, size_t size) {
+  int bytes_read = read(fd, buffer, size);
 
   if (bytes_read < 0) {
     printf("[ERROR]: Failed to read data from serial port!\n");
@@ -83,7 +84,7 @@ int main(void) {
   }
 
   /* Send data. */
-  int bytes_written = sendData(fd, DATA_TO_SEND);
+  int bytes_written = sendData(fd, DATA_TO_SEND, sizeof(DATA_TO_SEND));
   if (bytes_written > 0) {
     printf("Sent %d bytes: %s\n", bytes_written, DATA_TO_SEND);
   }
