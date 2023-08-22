@@ -7,7 +7,7 @@
 #define SERIAL_PORT "/dev/ttyS0"
 #define MAX_BUFFER_SIZE 255
 
-const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
+const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21, 0x00};
 
 int configureSerialPort(int fd) {
   /**
