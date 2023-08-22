@@ -3,15 +3,15 @@
 */
 
 module DigitalSensor (
-    input  wire clk,
+    input  wire clock,
     input  wire reset,
     output wire led
 );
 
   ClockDivider CD0 (
-      .clk(clk),
+      .clock(clock),
       .reset(reset),
-      .div_clk(led)
+      .div_clock(led)
   );
 
 endmodule
