@@ -4,9 +4,9 @@
 * driven high for one clock cycle.
 *
 * Parameters:
-*   - `CLKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
+*   - `CLOCKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
 *     e.g.: 10 MHz Clock and 115,200 Baud UART
-*     (10,000,000) / (115,200) = 87 CLKS_PER_BIT
+*     (10,000,000) / (115,200) = 87 CLOCKS_PER_BIT
 *
 * Source: https://nandland.com/uart-serial-port-module/
 *
@@ -15,7 +15,7 @@
 */
 
 module UART_RX #(
-    parameter CLKS_PER_BIT = 87
+    parameter CLOCKS_PER_BIT = 87
 ) (
     input        clock,
     input        incoming_bit,
@@ -58,7 +58,7 @@ module UART_RX #(
       end
 
       START_BIT: begin
-        if (counter == (CLKS_PER_BIT - 1) / 2) begin
+        if (counter == (CLOCKS_PER_BIT - 1) / 2) begin
           if (current_bit == 1'b0) begin
             counter <= 0;
             current_state <= DATA_BITS;
@@ -72,7 +72,7 @@ module UART_RX #(
       end
 
       DATA_BITS: begin
-        if (counter < CLKS_PER_BIT - 1) begin
+        if (counter < CLOCKS_PER_BIT - 1) begin
           counter <= counter + 1;
           current_state <= DATA_BITS;
         end else begin
@@ -90,7 +90,7 @@ module UART_RX #(
       end
 
       STOP_BIT: begin
-        if (counter < CLKS_PER_BIT - 1) begin
+        if (counter < CLOCKS_PER_BIT - 1) begin
           counter       <= counter + 1;
           current_state <= STOP_BIT;
         end else begin

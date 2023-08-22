@@ -4,9 +4,9 @@
 * `transmission_done` will be driven high for one clock cycle.
 *
 * Parameters:
-*   - `CLKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
+*   - `CLOCKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
 *     e.g.: 10 MHz Clock and 115,200 Baud UART
-*     (10,000,000) / (115,200) = 87 CLKS_PER_BIT
+*     (10,000,000) / (115,200) = 87 CLOCKS_PER_BIT
 *
 * Source: https://nandland.com/uart-serial-port-module/
 *
@@ -15,13 +15,13 @@
 */
 
 module UART_TX #(
-    parameter CLKS_PER_BIT = 87
+    parameter CLOCKS_PER_BIT = 87
 ) (
     input  wire       clock,
     input  wire       has_data,
     input  wire [7:0] data_to_send,
-    output wire       is_transmitting,
     output reg        sending_bit,
+    output wire       is_transmitting,
     output wire       transmission_done
 );
 
@@ -58,7 +58,7 @@ module UART_TX #(
       START_BIT: begin
         sending_bit <= 1'b0;
 
-        if (counter < CLKS_PER_BIT - 1) begin
+        if (counter < CLOCKS_PER_BIT - 1) begin
           counter       <= counter + 1;
           current_state <= START_BIT;
         end else begin
@@ -70,7 +70,7 @@ module UART_TX #(
       DATA_BITS: begin
         sending_bit <= data_to_send[current_bit];
 
-        if (counter < CLKS_PER_BIT - 1) begin
+        if (counter < CLOCKS_PER_BIT - 1) begin
           counter       <= counter + 1;
           current_state <= DATA_BITS;
         end else begin
@@ -89,7 +89,7 @@ module UART_TX #(
       STOP_BIT: begin
         sending_bit <= 1'b1;
 
-        if (counter < CLKS_PER_BIT - 1) begin
+        if (counter < CLOCKS_PER_BIT - 1) begin
           counter       <= counter + 1;
           current_state <= STOP_BIT;
         end else begin
