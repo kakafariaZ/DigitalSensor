@@ -1,12 +1,12 @@
 /**
-* This file contains the UART Receiver. This receiver is able to receive 8 bits of serial data,
-* one start bit, one stop bit, and no parity bit. When receive is complete o_rx_dv will be
+* This module contains the UART Receiver. This receiver is able to receive 8 bits of serial data,
+* one start bit, one stop bit, and no parity bit. When reception is completed `has_data` will be
 * driven high for one clock cycle.
 *
-* Set Parameter `CLKS_PER_BIT` as follows:
-* CLKS_PER_BIT = (Frequency of i_Clock) / (Frequency of UART)
-* Example: 10 MHz Clock and 115,200 Baud UART
-* (10,000,000) / (115,200) = 87 CLKS_PER_BIT
+* Parameters:
+*   - `CLKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
+*     e.g.: 10 MHz Clock and 115,200 Baud UART
+*     (10,000,000) / (115,200) = 87 CLKS_PER_BIT
 *
 * Source: https://nandland.com/uart-serial-port-module/
 *
