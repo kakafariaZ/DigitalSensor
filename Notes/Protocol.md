@@ -17,6 +17,8 @@
 | 0x06 |   Activate continuos monitoring of the humidity level    |
 | 0x07 | Deactivate continuos monitoring of the temperature level |
 | 0x08 |  Deactivate continuos monitoring of the humidity level   |
+| 0xCB |              Request to begin communication              |
+| 0xCD |               Request to end communication               |
 
 ###### Response commands
 
@@ -30,3 +32,5 @@
 | 0x0D |                         Humidity level - Fractional part                          |
 | 0x0E | Confirmation of the deactivation of continuos monitoring of the temperature level |
 | 0x0F |  Confirmation of the deactivation of continuos monitoring of the humidity level   |
+| 0xFB |                        Confirm beginning of communication                         |
+| 0xFD |                           Confirm end of communication                            |
