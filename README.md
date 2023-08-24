@@ -10,12 +10,20 @@
 > Prototype of a complete digital system for managing environments using IoT for tracking
 > measurements such as temperature and humidity levels.
 
+<div align="center">
+
+[![Activity](https://img.shields.io/github/last-commit/gersonfaneto/DigitalSensor?color=blue&style=for-the-badge&logo=git)](https://github.com/gersonfaneto/DigitalSensor/commit/main)
+[![License](https://img.shields.io/github/license/gersonfaneto/DigitalSensor?color=blue&style=for-the-badge)](https://github.com/gersonfaneto/DigitalSensor/blob/main/LICENSE)
+[![Stars](https://img.shields.io/github/stars/gersonfaneto/DigitalSensor?style=for-the-badge&logo=github)](https://github.com/gersonfaneto/DigitalSensor)
+[![Language](https://img.shields.io/static/v1?label=LANGUAGE&message=Verilog&color=informational&style=for-the-badge&logo=openjdk)](https://www.java.com/en/)
+
+</div>
+
 # License
 
 Released under the [MIT](https://github.com/gersonfaneto/DataStructures/blob/main/LICENSE)
 license by:
 
-- [Camila Queiroz Boa Morte Pereira](https://github.com/camilaqPereira)
 - [Everton Vinicius da Silva Ferreira](https://github.com/Yamis4n)
 - [Gerson Ferreira dos Anjos Neto](https://github.com/gersonfaneto)
 - [Kauan Caio de Arruda Farias](https://github.com/kakafariaZ)
