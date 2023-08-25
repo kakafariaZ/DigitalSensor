@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE30F23C7
-set_global_assignment -name TOP_LEVEL_ENTITY DigitalSensor
+set_global_assignment -name TOP_LEVEL_ENTITY BinaryToDisplay
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 21.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "10:21:33  AUGUST 18, 2023"
 set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.1 Lite Edition"
@@ -61,6 +61,7 @@ set_global_assignment -name EDA_TEST_BENCH_NAME ClockDividerTB -section_id eda_s
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id ClockDividerTB
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME ClockDividerTB -section_id ClockDividerTB
 set_global_assignment -name EDA_TEST_BENCH_FILE ClockDividerTB.v -section_id ClockDividerTB
+set_global_assignment -name VERILOG_FILE BinaryToDisplay.v
 set_global_assignment -name VERILOG_FILE UART_TX.v
 set_global_assignment -name VERILOG_FILE UART_RX.v
 set_global_assignment -name VERILOG_FILE ClockDivider.v
