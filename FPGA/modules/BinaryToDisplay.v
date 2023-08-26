@@ -24,35 +24,36 @@ module BinaryToDisplay (
     output       segment_g
 );
 
-  reg [6:0] hex_encoding = 7'h00;
+  reg [6:0] segments_encoding = 7'b0000000;
 
   always @(posedge clock) begin
     case (binary_number)
-      4'b0000: hex_encoding <= 7'h7E;
-      4'b0001: hex_encoding <= 7'h30;
-      4'b0010: hex_encoding <= 7'h6D;
-      4'b0011: hex_encoding <= 7'h79;
-      4'b0100: hex_encoding <= 7'h33;
-      4'b0101: hex_encoding <= 7'h5B;
-      4'b0110: hex_encoding <= 7'h5F;
-      4'b0111: hex_encoding <= 7'h70;
-      4'b1000: hex_encoding <= 7'h7F;
-      4'b1001: hex_encoding <= 7'h7B;
-      4'b1010: hex_encoding <= 7'h77;
-      4'b1011: hex_encoding <= 7'h1F;
-      4'b1100: hex_encoding <= 7'h4E;
-      4'b1101: hex_encoding <= 7'h3D;
-      4'b1110: hex_encoding <= 7'h4F;
-      4'b1111: hex_encoding <= 7'h47;
+      4'b0000: segments_encoding <= 7'b1111110; // 0
+      4'b0001: segments_encoding <= 7'b0110000; // 1
+      4'b0010: segments_encoding <= 7'b1101101; // 2
+      4'b0011: segments_encoding <= 7'b1111001; // 3
+      4'b0100: segments_encoding <= 7'b0110011; // 4
+      4'b0101: segments_encoding <= 7'b1011011; // 5
+      4'b0110: segments_encoding <= 7'b1011111; // 6
+      4'b0111: segments_encoding <= 7'b1110001; // 7
+      4'b1000: segments_encoding <= 7'b1111111; // 8
+      4'b1001: segments_encoding <= 7'b1110011; // 9
+      4'b1010: segments_encoding <= 7'b1110111; // A
+      4'b1011: segments_encoding <= 7'b0011111; // B
+      4'b1100: segments_encoding <= 7'b1001110; // C
+      4'b1101: segments_encoding <= 7'b0111101; // D
+      4'b1110: segments_encoding <= 7'b1001111; // E
+      4'b1111: segments_encoding <= 7'b1000111; // F
+      default: segments_encoding <= 7'b0000000; // OFF
     endcase
   end
 
-  assign segment_a = hex_encoding[6];
-  assign segment_b = hex_encoding[5];
-  assign segment_c = hex_encoding[4];
-  assign segment_d = hex_encoding[3];
-  assign segment_e = hex_encoding[2];
-  assign segment_f = hex_encoding[1];
-  assign segment_g = hex_encoding[0];
+  assign segment_a = segments_encoding[6];
+  assign segment_b = segments_encoding[5];
+  assign segment_c = segments_encoding[4];
+  assign segment_d = segments_encoding[3];
+  assign segment_e = segments_encoding[2];
+  assign segment_f = segments_encoding[1];
+  assign segment_g = segments_encoding[0];
 
 endmodule
