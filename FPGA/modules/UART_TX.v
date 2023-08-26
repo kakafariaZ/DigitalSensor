@@ -76,12 +76,12 @@ module UART_TX #(
         end else begin
           counter <= 0;
 
-          if (current_bit < 7) begin
-            current_bit   <= current_bit + 1;
-            current_state <= DATA_BITS;
-          end else begin
+          if (current_bit <= 7) begin
             current_bit   <= 0;
             current_state <= STOP_BIT;
+          end else begin
+            current_bit   <= current_bit + 1;
+            current_state <= DATA_BITS;
           end
         end
       end

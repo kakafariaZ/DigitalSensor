@@ -79,12 +79,12 @@ module UART_RX #(
           counter                        <= 0;
           r_data_received[current_index] <= current_bit;
 
-          if (current_index < 7) begin
-            current_index <= current_index + 1;
-            current_state <= DATA_BITS;
-          end else begin
+          if (current_index <= 7) begin
             current_index <= 0;
             current_state <= STOP_BIT;
+          end else begin
+            current_index <= current_index + 1;
+            current_state <= DATA_BITS;
           end
         end
       end
