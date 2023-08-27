@@ -31,8 +31,8 @@ module UART_TX #(
              STOP_BIT = 3'b011,
              CLEANUP = 3'b100;
 
-  reg [2:0] current_state = 0;
-  reg [2:0] current_bit = 0;
+  reg [2:0] current_state = IDLE;
+  reg [2:0] current_index = 0;
   reg [7:0] counter = 0;
   reg [7:0] r_data_to_send = 0;
   reg       r_transmission_done = 0;
@@ -42,7 +42,7 @@ module UART_TX #(
     case (current_state)
       IDLE: begin
         counter <= 0;
-        current_bit <= 0;
+        current_index <= 0;
         sending_bit <= 1'b1;
         r_transmission_done <= 1'b0;
 
@@ -68,7 +68,7 @@ module UART_TX #(
       end
 
       DATA_BITS: begin
-        sending_bit <= data_to_send[current_bit];
+        sending_bit <= data_to_send[current_index];
 
         if (counter < CLOCKS_PER_BIT - 1) begin
           counter       <= counter + 1;
@@ -76,12 +76,12 @@ module UART_TX #(
         end else begin
           counter <= 0;
 
-          if (current_bit <= 7) begin
-            current_bit   <= 0;
-            current_state <= STOP_BIT;
-          end else begin
-            current_bit   <= current_bit + 1;
+          if (current_index != 7) begin
+            current_index   <= current_index + 1;
             current_state <= DATA_BITS;
+          end else begin
+            current_index   <= 0;
+            current_state <= STOP_BIT;
           end
         end
       end

@@ -29,18 +29,18 @@ module UART_RX #(
              STOP_BIT = 3'b011,
              CLEANUP = 3'b100;
 
+  reg       current_bit_buffer = 1'b1;
   reg       current_bit = 1'b1;
-  reg       current_bit_bak = 1'b1;
 
-  reg [2:0] current_state = 0;
+  reg [2:0] current_state = IDLE;
   reg [2:0] current_index = 0;
   reg [7:0] counter = 0;
   reg [7:0] r_data_received = 0;
   reg       r_has_data = 0;
 
   always @(posedge clock) begin
-    current_bit_bak <= incoming_bit;
-    current_bit <= current_bit_bak;
+    current_bit_buffer <= incoming_bit;
+    current_bit <= current_bit_buffer;
   end
 
   always @(posedge clock) begin
@@ -79,12 +79,12 @@ module UART_RX #(
           counter                        <= 0;
           r_data_received[current_index] <= current_bit;
 
-          if (current_index <= 7) begin
-            current_index <= 0;
-            current_state <= STOP_BIT;
-          end else begin
+          if (current_index != 7) begin
             current_index <= current_index + 1;
             current_state <= DATA_BITS;
+          end else begin
+            current_index <= 0;
+            current_state <= STOP_BIT;
           end
         end
       end
