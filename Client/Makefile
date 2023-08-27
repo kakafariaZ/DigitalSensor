@@ -1,17 +1,20 @@
-CC=gcc
-CFLAGS=-Wall -Werror -Wextra
-SOURCE=src/Main.c
-OUT=bin/Main
+CC = gcc
+CFLAGS = -Wall -Werror -Wextra
+SRC_DIR = src
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+OUT = bin/Main
 
 all: build
 
-build: ${SOURCE}
-	${CC} ${SOURCE} -o ${OUT} ${CFLAGS}
+build: $(OUT)
 
-run:
-	./${OUT}
+$(OUT): $(SRC_FILES)
+	$(CC) $^ -o $@ $(CFLAGS)
+
+run: build
+	./$(OUT)
 
 clean:
-	rm -f ${OUT}
+	rm -f $(OUT)
 
 .PHONY: all build run clean
