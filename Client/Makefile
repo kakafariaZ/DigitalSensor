@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Werror -Wextra
-SOURCE=Main.c
-OUT=Main
+SOURCE=src/Main.c
+OUT=bin/Main
 
 all: build
 

@@ -5,8 +5,8 @@
 
 CC=gcc                         # Change this to the available compiler.
 CFLAGS="-Wall -Werror -Wextra" # Change this to the desired/needed compilation flags.
-SOURCE=Main.c                  # Change this to the proper source file.
-OUTPUT=Main                    # Change this to the desired output file.
+SOURCE=src/Main.c                  # Change this to the proper source file.
+OUTPUT=bin/Main                    # Change this to the desired output file.
 
 function help_message() {
   local exit_code="$1"
