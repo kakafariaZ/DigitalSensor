@@ -1,77 +1,81 @@
-`timescale 1ns / 1ps
+/**
+* This testbench will exercise both the `UART_RX` and `UART_TX` modules. It sends out a byte and
+* ensures the RX receives it correctly.
+*
+* Source: http://www.nandland.com
+*
+* NOTE: Minor modifications were made to the original code for better understanding of the
+* working group.
+*/
 
-module UART_TB;
+`timescale 1ns / 10ps
 
-  // Define clock parameters
-  parameter CLOCK_PERIOD = 10; // 10ns clock period
-  parameter CLOCK_FREQUENCY = 10000000; // 10MHz
-  reg CLK = 0;
+module UART_TB ();
+  parameter SAMPLE_DATA = 8'h55;
 
-  // UART parameters
+  // Define clock parameters.
+  parameter CLOCK_PERIOD = 100;
+  parameter CLOCK_FREQUENCY = 10000000;
+
+  // UART parameters.
   parameter BAUD_RATE = 115200;
-  parameter CLOCKS_PER_BIT = CLOCK_FREQUENCY / BAUD_RATE; // Calculate bit period in ns
+  parameter CLOCKS_PER_BIT = (CLOCK_FREQUENCY / BAUD_RATE) + 1;
 
-  // UART data
-  reg [7:0] tx_data = 8'hAB;
-  reg tx_data_valid = 0;
-  wire tx_sending_bit;
-  wire tx_is_transmitting;
-  wire tx_transmission_done;
-  wire [7:0] rx_data;
-  reg rx_serial = 1'b1;
-  wire rx_data_valid;
+  reg clock = 0;
+  reg has_data_tx = 0;
+  reg [7:0] data_to_send = 0;
 
-  // Instantiate UART modules
+  wire has_data_rx;
+  wire sending_bit;
+  wire is_transmitting;
+  wire transmission_line;
+  wire transmission_done;
+  wire [7:0] data_received;
+
   UART_TX #(
-    .CLOCKS_PER_BIT(CLOCKS_PER_BIT)
-  ) tx (
-    .clock(CLK),
-    .has_data(tx_data_valid),
-    .data_to_send(tx_data),
-    .sending_bit(tx_sending_bit),
-    .is_transmitting(tx_is_transmitting),
-    .transmission_done(tx_transmission_done)
+      .CLOCKS_PER_BIT(CLOCKS_PER_BIT)
+  ) UART_TX_UUT (
+      .clock(clock),
+      .has_data(has_data_tx),
+      .data_to_send(data_to_send),
+      .sending_bit(sending_bit),
+      .is_transmitting(is_transmitting),
+      .transmission_done(transmission_done)
   );
 
   UART_RX #(
-    .CLOCKS_PER_BIT(CLOCKS_PER_BIT)
-  ) rx (
-    .clock(CLK),
-    .incoming_bit(rx_serial),
-    .has_data(rx_data_valid),
-    .data_received(rx_data)
+      .CLOCKS_PER_BIT(CLOCKS_PER_BIT)
+  ) UART_RX_UUT (
+      .clock(clock),
+      .incoming_bit(transmission_line),
+      .has_data(has_data_rx),
+      .data_received(data_received)
   );
 
-  // Clock generation
+  assign transmission_line = is_transmitting ? sending_bit : 1'b1;
+
   always begin
-    #(CLOCK_PERIOD / 2) CLK = ~CLK;
+    #(CLOCK_PERIOD / 2) clock = ~clock;
   end
 
-  // Test procedure
   initial begin
-    // Initialize UART modules
-    rx_serial = 1;
+    @(posedge clock);
+    has_data_tx <= 1'b1;
 
-    // Start transmission
-    tx_data_valid = 1;
-    #(CLOCK_PERIOD * 10); // Wait for transmission to complete
-    
-    // Stop transmission
-    tx_data_valid = 0;
-    #(CLOCK_PERIOD * 10); // Wait for transmission to complete
-    
-    // Check received data
-    if (rx_data_valid) begin
-      if (rx_data == 8'hAB)
-        $display("Test Passed - Correct Byte Received: %h", rx_data);
-      else
-        $display("Test Failed - Incorrect Byte Received: %h", rx_data);
+    @(posedge clock);
+    data_to_send <= SAMPLE_DATA;
+
+    @(posedge clock);
+    has_data_tx <= 1'b0;
+
+    @(posedge has_data_rx);
+    if (data_received == SAMPLE_DATA) begin
+      $display("Test Passed - Correct Byte Received - 0x%h", data_received);
     end else begin
-      $display("Test Failed - No Data Received");
+      $display("Test Failed - Incorrect Byte Received - 0x%h", data_received);
     end
 
-    $stop; // End simulation
+    $stop();
   end
 
 endmodule
-
