@@ -6,6 +6,8 @@ module DigitalSensor (
     input wire clock,
     input wire reset,
     input wire has_data_tx,
+    input wire incoming_bit,
+    output wire sending_bit,
     output wire is_transmitting,
     output wire transmission_done,
     output wire has_data_rx,
@@ -16,8 +18,6 @@ module DigitalSensor (
   localparam DATA_TO_SEND = 16'h0x4F;
 
   wire div_clock;
-  wire sending_bit;
-  wire incoming_bit;
 
   wire [7:0] data_received;
 
@@ -66,7 +66,5 @@ module DigitalSensor (
       .segment_f(second_digit[1]),
       .segment_g(second_digit[0])
   );
-
-  assign incoming_bit = sending_bit;
 
 endmodule
