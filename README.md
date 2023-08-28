@@ -15,7 +15,7 @@
 [![Activity](https://img.shields.io/github/last-commit/gersonfaneto/DigitalSensor?color=blue&style=for-the-badge&logo=git)](https://github.com/gersonfaneto/DigitalSensor/commit/main)
 [![License](https://img.shields.io/github/license/gersonfaneto/DigitalSensor?color=blue&style=for-the-badge)](https://github.com/gersonfaneto/DigitalSensor/blob/main/LICENSE)
 [![Stars](https://img.shields.io/github/stars/gersonfaneto/DigitalSensor?style=for-the-badge&logo=github)](https://github.com/gersonfaneto/DigitalSensor)
-[![Language](https://img.shields.io/static/v1?label=LANGUAGE&message=Verilog&color=informational&style=for-the-badge&logo=openjdk)](https://www.java.com/en/)
+[![Language](https://img.shields.io/static/v1?label=LANGUAGE&message=Verilog&color=informational&style=for-the-badge)](https://ieeexplore.ieee.org/document/5985443)
 
 </div>
 
