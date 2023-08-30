@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE30F23C7
-set_global_assignment -name TOP_LEVEL_ENTITY DigitalSensor
+set_global_assignment -name TOP_LEVEL_ENTITY TriState
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 21.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "10:21:33  AUGUST 18, 2023"
 set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.1 Lite Edition"
@@ -66,20 +66,9 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME BinaryToDisplayTB -sectio
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id UART_TB
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME UART_TB -section_id UART_TB
 set_global_assignment -name EDA_TEST_BENCH_NAME UART_TB -section_id eda_simulation
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/ClockDividerTB.v -section_id ClockDividerTB
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/BinaryToDisplayTB.v -section_id BinaryToDisplayTB
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/UART_TB.v -section_id UART_TB
-set_global_assignment -name VERILOG_FILE testbenchs/UART_TB.v
-set_global_assignment -name VERILOG_FILE testbenchs/BinaryToDisplayTB.v
-set_global_assignment -name VERILOG_FILE testbenchs/ClockDividerTB.v
-set_global_assignment -name VERILOG_FILE modules/BinaryToDisplay.v
-set_global_assignment -name VERILOG_FILE modules/ClockDivider.v
-set_global_assignment -name VERILOG_FILE modules/DigitalSensor.v
-set_global_assignment -name VERILOG_FILE modules/UART_RX.v
-set_global_assignment -name VERILOG_FILE modules/UART_TX.v
 set_location_assignment PIN_W2 -to first_digit[0]
 set_location_assignment PIN_T22 -to clock
 set_location_assignment PIN_V2 -to first_digit[6]
@@ -99,4 +88,16 @@ set_location_assignment PIN_M6 -to second_digit[2]
 set_location_assignment PIN_N7 -to second_digit[1]
 set_location_assignment PIN_N6 -to second_digit[0]
 set_location_assignment PIN_C4 -to sending_bit
+set_global_assignment -name VERILOG_FILE modules/TriState.v
+set_global_assignment -name VERILOG_FILE testbenchs/UART_TB.v
+set_global_assignment -name VERILOG_FILE testbenchs/BinaryToDisplayTB.v
+set_global_assignment -name VERILOG_FILE testbenchs/ClockDividerTB.v
+set_global_assignment -name VERILOG_FILE modules/BinaryToDisplay.v
+set_global_assignment -name VERILOG_FILE modules/ClockDivider.v
+set_global_assignment -name VERILOG_FILE modules/DigitalSensor.v
+set_global_assignment -name VERILOG_FILE modules/UART_RX.v
+set_global_assignment -name VERILOG_FILE modules/UART_TX.v
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
