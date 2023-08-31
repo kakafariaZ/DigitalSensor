@@ -1,3 +1,8 @@
+/**
+* This module implements a decoder for handling communication with the DHT11
+* sensor.
+*/
+
 module SensorDecoder (
     input CLK,
     input EN,
