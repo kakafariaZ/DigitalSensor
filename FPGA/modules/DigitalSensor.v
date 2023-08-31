@@ -5,19 +5,16 @@
 module DigitalSensor (
     input wire clock,
     input wire reset,
-    input wire has_data_tx,
     input wire incoming_bit,
     output wire sending_bit,
     output wire is_transmitting,
     output wire transmission_done,
-    output wire has_data_rx,
     output wire [6:0] first_digit,
     output wire [6:0] second_digit
 );
 
-  localparam DATA_TO_SEND = 16'h0x4F;
-
   wire div_clock;
+  wire has_data;
 
   wire [7:0] data_received;
 
@@ -29,7 +26,7 @@ module DigitalSensor (
 
   UART_TX TX0 (
       .clock(div_clock),
-      .has_data(has_data_tx),
+      .has_data(has_data),
       .data_to_send(DATA_TO_SEND),
       .sending_bit(sending_bit),
       .is_transmitting(is_transmitting),
@@ -39,7 +36,7 @@ module DigitalSensor (
   UART_RX RX0 (
       .clock(div_clock),
       .incoming_bit(incoming_bit),
-      .has_data(has_data_rx),
+      .has_data(has_data),
       .data_received(data_received)
   );
 
