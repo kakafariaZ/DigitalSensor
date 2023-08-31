@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE30F23C7
-set_global_assignment -name TOP_LEVEL_ENTITY TriState
+set_global_assignment -name TOP_LEVEL_ENTITY SensorDecoder
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 21.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "10:21:33  AUGUST 18, 2023"
 set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.1 Lite Edition"
@@ -88,13 +88,14 @@ set_location_assignment PIN_M6 -to second_digit[2]
 set_location_assignment PIN_N7 -to second_digit[1]
 set_location_assignment PIN_N6 -to second_digit[0]
 set_location_assignment PIN_C4 -to sending_bit
-set_global_assignment -name VERILOG_FILE modules/TriState.v
 set_global_assignment -name VERILOG_FILE testbenchs/UART_TB.v
-set_global_assignment -name VERILOG_FILE testbenchs/BinaryToDisplayTB.v
 set_global_assignment -name VERILOG_FILE testbenchs/ClockDividerTB.v
-set_global_assignment -name VERILOG_FILE modules/BinaryToDisplay.v
-set_global_assignment -name VERILOG_FILE modules/ClockDivider.v
+set_global_assignment -name VERILOG_FILE testbenchs/BinaryToDisplayTB.v
 set_global_assignment -name VERILOG_FILE modules/DigitalSensor.v
+set_global_assignment -name VERILOG_FILE modules/TriState.v
+set_global_assignment -name VERILOG_FILE modules/SensorDecoder.v
+set_global_assignment -name VERILOG_FILE modules/ClockDivider.v
+set_global_assignment -name VERILOG_FILE modules/BinaryToDisplay.v
 set_global_assignment -name VERILOG_FILE modules/UART_RX.v
 set_global_assignment -name VERILOG_FILE modules/UART_TX.v
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
