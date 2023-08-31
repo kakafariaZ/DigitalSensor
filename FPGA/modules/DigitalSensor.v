@@ -24,20 +24,20 @@ module DigitalSensor (
       .div_clock(div_clock)
   );
 
-  UART_TX TX0 (
-      .clock(div_clock),
-      .has_data(has_data),
-      .data_to_send(DATA_TO_SEND),
-      .sending_bit(sending_bit),
-      .is_transmitting(is_transmitting),
-      .transmission_done(transmission_done)
-  );
-
   UART_RX RX0 (
       .clock(div_clock),
       .incoming_bit(incoming_bit),
       .has_data(has_data),
       .data_received(data_received)
+  );
+
+  UART_TX TX0 (
+      .clock(div_clock),
+      .has_data(has_data),
+      .data_to_send(data_received),
+      .sending_bit(sending_bit),
+      .is_transmitting(is_transmitting),
+      .transmission_done(transmission_done)
   );
 
   BinaryToDisplay BD0 (
