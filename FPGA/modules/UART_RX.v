@@ -10,8 +10,8 @@
 *
 * Source: https://nandland.com/uart-serial-port-module/
 *
-* NOTE: Minor modifications were made to the original code for better understanding of the
-* working group.
+* NOTE: Minor modifications were made to the original code to suit the targeted problem and for
+* better understanding of the working group.
 */
 
 module UART_RX #(
