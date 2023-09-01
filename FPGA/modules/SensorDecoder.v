@@ -23,16 +23,17 @@ module SensorDecoder (
 );
 
   reg [39:0] sensor_data;
-  reg [25:0] counter;
+  reg [26:0] counter;
   reg [ 5:0] index;
+  reg sensor_out, direction;
 
-  reg sensor_in, sensor_out, direction;
+  wire sensor_in;
 
   TriState TS0 (
       .port(transmission_line),
       .dir (direction),
-      .send(sensor_in),
-      .read(sensor_out)
+      .send(sensor_out),
+      .read(sensor_in)
   );
 
   assign hum_int[0] = sensor_data[0];
@@ -80,10 +81,10 @@ module SensorDecoder (
   assign checksum[6] = sensor_data[38];
   assign checksum[7] = sensor_data[39];
 
-  localparam S0 = 4'b0001, S1 = 4'b0010, S2 = 4'b0011,
-             S3 = 4'b0100, S4 = 4'b0101, S5 = 4'b0110,
-             S6 = 4'b0111, S7 = 4'b1000, S8 = 4'b1001,
-             S9 = 4'b1010, START = 4'b1011, STOP = 4'b0000;
+  localparam [3:0] S0 = 4'b0001, S1 = 4'b0010, S2 = 4'b0011,
+                   S3 = 4'b0100, S4 = 4'b0101, S5 = 4'b0110,
+                   S6 = 4'b0111, S7 = 4'b1000, S8 = 4'b1001,
+                   S9 = 4'b1010, START = 4'b1011, STOP = 4'b0000;
 
   reg [3:0] current_state = STOP;
 
@@ -94,7 +95,7 @@ module SensorDecoder (
         error <= 1'b0;
         direction <= 1'b1;
         sensor_out <= 1'b1;
-        counter <= 26'b00000000000000000000000000;
+        counter <= 27'b000000000000000000000000000;
         sensor_data <= 40'b0000000000000000000000000000000000000000;
         current_state <= START;
       end else begin
@@ -112,11 +113,11 @@ module SensorDecoder (
             direction <= 1'b1;
             sensor_out <= 1'b1;
 
-            if (counter < 1_800_000) begin
+            if (counter < 3_600_000) begin
               counter <= counter + 1'b1;
             end else begin
               current_state <= S1;
-              counter <= 26'b00000000000000000000000000;
+              counter <= 27'b000000000000000000000000000;
             end
           end
 
@@ -124,18 +125,18 @@ module SensorDecoder (
             hold <= 1'b1;
             sensor_out <= 1'b0;
 
-            if (counter < 1_800_000) begin
+            if (counter < 3_600_000) begin
               counter <= counter + 1'b1;
             end else begin
               current_state <= S2;
-              counter <= 26'b00000000000000000000000000;
+              counter <= 27'b000000000000000000000000000;
             end
           end
 
           S2: begin
             sensor_out <= 1'b1;
 
-            if (counter < 2_000) begin
+            if (counter < 4_000) begin
               counter <= counter + 1'b1;
             end else begin
               current_state <= S3;
@@ -144,51 +145,51 @@ module SensorDecoder (
           end
 
           S3: begin
-            if (counter < 6_000 && sensor_in == 1'b1) begin
+            if (counter < 12_000 && sensor_in == 1'b1) begin
               current_state <= S3;
               counter <= counter + 1'b1;
             end else begin
               if (sensor_in == 1'b1) begin
                 current_state <= STOP;
                 error <= 1'b1;
-                counter <= 26'b00000000000000000000000000;
+                counter <= 27'b000000000000000000000000000;
               end else begin
                 current_state <= S4;
-                counter <= 26'b00000000000000000000000000;
+                counter <= 27'b000000000000000000000000000;
               end
             end
           end
 
           S4: begin
-            if (sensor_in == 1'b0 && counter < 8800) begin
+            if (sensor_in == 1'b0 && counter < 17_600) begin
               current_state <= S4;
               counter <= counter + 1'b1;
             end else begin
               if (sensor_in == 1'b0) begin
                 current_state <= STOP;
                 error <= 1'b1;
-                counter <= 26'b00000000000000000000000000;
+                counter <= 27'b000000000000000000000000000;
               end else begin
                 current_state <= S5;
-                counter <= 26'b00000000000000000000000000;
+                counter <= 27'b000000000000000000000000000;
               end
             end
           end
 
           S5: begin
-            if (sensor_in == 1'b1 && counter < 8800) begin
+            if (sensor_in == 1'b1 && counter < 17_600) begin
               current_state <= S5;
               counter <= counter + 1'b1;
             end else begin
               if (sensor_in == 1'b1) begin
                 current_state <= STOP;
                 error <= 1'b1;
-                counter <= 26'b00000000000000000000000000;
+                counter <= 27'b000000000000000000000000000;
               end else begin
                 current_state <= S6;
                 error <= 1'b1;
                 index <= 6'b000000;
-                counter <= 26'b00000000000000000000000000;
+                counter <= 27'b000000000000000000000000000;
               end
             end
           end
@@ -199,29 +200,29 @@ module SensorDecoder (
             end else begin
               current_state <= STOP;
               error <= 1'b1;
-              counter <= 26'b00000000000000000000000000;
+              counter <= 27'b000000000000000000000000000;
             end
           end
 
           S7: begin
             if (sensor_in == 1'b1) begin
               current_state <= S8;
-              counter <= 26'b00000000000000000000000000;
+              counter <= 27'b000000000000000000000000000;
             end else begin
-              if (counter < 3200000) begin
+              if (counter < 6_400_000) begin
                 current_state <= S7;
                 counter <= counter + 1'b1;
               end else begin
                 current_state <= STOP;
                 error <= 1'b1;
-                counter <= 26'b00000000000000000000000000;
+                counter <= 27'b000000000000000000000000000;
               end
             end
           end
 
           S8: begin
             if (sensor_in == 1'b0) begin
-              if (counter > 5000) begin
+              if (counter > 10_000) begin
                 debug <= 1'b1;
                 sensor_data[index] <= 1'b1;
               end else begin
@@ -231,7 +232,7 @@ module SensorDecoder (
 
               if (index < 39) begin
                 current_state <= S9;
-                counter <= 26'b00000000000000000000000000;
+                counter <= 27'b000000000000000000000000000;
               end else begin
                 current_state <= STOP;
                 error <= 1'b0;
@@ -239,7 +240,7 @@ module SensorDecoder (
             end else begin
               counter <= counter + 1'b1;
 
-              if (counter == 3200000) begin
+              if (counter == 6_400_000) begin
                 current_state <= STOP;
                 error <= 1'b1;
               end
@@ -260,9 +261,9 @@ module SensorDecoder (
               direction <= 1'b1;
               sensor_out <= 1'b1;
               index <= 6'b000000;
-              counter <= 26'b00000000000000000000000000;
+              counter <= 27'b000000000000000000000000000;
             end else begin
-              if (counter < 3200000) begin
+              if (counter < 6_400_000) begin
                 hold <= 1'b1;
                 error <= 1'b1;
                 direction <= 1'b0;
