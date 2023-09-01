@@ -16,12 +16,12 @@ int configureSerialPort(int fd) {
   /* tcgetattr(fd, &settings); */
 
   /* Set up serial port:
-   *   - B9600: Baud rate of 9600 bits per second.
+   *   - B115200: Baud rate of 115,200 bits per second.
    *   - CS8: 8 bits of data.
    *   - CLOCAL: Ignore modem status line.
    *   - CREAD: Enable receiver.
    */
-  settings.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
+  settings.c_cflag = B115200 | CS8 | CLOCAL | CREAD;
   settings.c_iflag = IGNPAR;
   settings.c_oflag = 0;
   settings.c_lflag = 0;
