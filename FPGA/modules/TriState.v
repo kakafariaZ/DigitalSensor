@@ -10,13 +10,13 @@
 */
 
 module TriState (
-    inout  port,
-    input  dir,
-    input  send,
-    output read
+    inout  wire port,
+    input  wire dir,
+    input  wire send,
+    output wire read
 );
 
   assign port = dir ? send : 1'bZ;
-  assign read = dir ? 1'bz : port;
+  assign read = dir ? 1'bZ : port;
 
 endmodule
