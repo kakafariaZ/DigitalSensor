@@ -4,270 +4,266 @@
 */
 
 module SensorDecoder (
-    input CLK,
-    input EN,
-    input RST,
-    inout DHT_DATA,
-    output [7:0] HUM_INT,
-    output [7:0] HUM_FLOAT,
-    output [7:0] TEMP_INT,
-    output [7:0] TEMP_FLOAT,
-    output [7:0] CRC,
-    output WAIT,
-    output DEBUG,
-    output ERROR
+    input wire clock,
+    input wire enable,
+    input wire reset,
+    inout wire transmission_line,
+    output wire [7:0] hum_int,
+    output wire [7:0] hum_float,
+    output wire [7:0] temp_int,
+    output wire [7:0] temp_float,
+    output wire [7:0] checksum,
+    output reg hold,
+    output reg debug,
+    output reg error
 );
 
-  reg DHT_OUT, DIR, WAIT_REG, DEBUG_REG;
-  reg [25:0] COUNTER;
+  reg [39:0] sensor_data;
+  reg [25:0] counter;
   reg [5:0] index;
-  reg [39:0] INTDATA;
-  reg error;
-  wire DHT_IN;
 
-  assign WAIT  = WAIT_REG;
-  assign DEBUG = DEBUG_REG;
+  reg sensor_in, sensor_out, direction;
 
   TriState TS0 (
-      .port(DHT_DATA),
-      .dir (DIR),
-      .send(DHT_OUT),
-      .read(DHT_IN)
+      .port(transmission_line),
+      .dir (direction),
+      .send(sensor_in),
+      .read(sensor_out)
   );
 
-  assign HUM_INT[0] = INTDATA[0];
-  assign HUM_INT[1] = INTDATA[1];
-  assign HUM_INT[2] = INTDATA[2];
-  assign HUM_INT[3] = INTDATA[3];
-  assign HUM_INT[4] = INTDATA[4];
-  assign HUM_INT[5] = INTDATA[5];
-  assign HUM_INT[6] = INTDATA[6];
-  assign HUM_INT[7] = INTDATA[7];
+  assign hum_int[0] = sensor_data[0];
+  assign hum_int[1] = sensor_data[1];
+  assign hum_int[2] = sensor_data[2];
+  assign hum_int[3] = sensor_data[3];
+  assign hum_int[4] = sensor_data[4];
+  assign hum_int[5] = sensor_data[5];
+  assign hum_int[6] = sensor_data[6];
+  assign hum_int[7] = sensor_data[7];
 
-  assign HUM_FLOAT[0] = INTDATA[8];
-  assign HUM_FLOAT[1] = INTDATA[9];
-  assign HUM_FLOAT[2] = INTDATA[10];
-  assign HUM_FLOAT[3] = INTDATA[11];
-  assign HUM_FLOAT[4] = INTDATA[12];
-  assign HUM_FLOAT[5] = INTDATA[13];
-  assign HUM_FLOAT[6] = INTDATA[14];
-  assign HUM_FLOAT[7] = INTDATA[15];
+  assign hum_float[0] = sensor_data[8];
+  assign hum_float[1] = sensor_data[9];
+  assign hum_float[2] = sensor_data[10];
+  assign hum_float[3] = sensor_data[11];
+  assign hum_float[4] = sensor_data[12];
+  assign hum_float[5] = sensor_data[13];
+  assign hum_float[6] = sensor_data[14];
+  assign hum_float[7] = sensor_data[15];
 
-  assign TEMP_INT[0] = INTDATA[16];
-  assign TEMP_INT[1] = INTDATA[17];
-  assign TEMP_INT[2] = INTDATA[18];
-  assign TEMP_INT[3] = INTDATA[19];
-  assign TEMP_INT[4] = INTDATA[20];
-  assign TEMP_INT[5] = INTDATA[21];
-  assign TEMP_INT[6] = INTDATA[22];
-  assign TEMP_INT[7] = INTDATA[23];
+  assign temp_int[0] = sensor_data[16];
+  assign temp_int[1] = sensor_data[17];
+  assign temp_int[2] = sensor_data[18];
+  assign temp_int[3] = sensor_data[19];
+  assign temp_int[4] = sensor_data[20];
+  assign temp_int[5] = sensor_data[21];
+  assign temp_int[6] = sensor_data[22];
+  assign temp_int[7] = sensor_data[23];
 
-  assign TEMP_FLOAT[0] = INTDATA[24];
-  assign TEMP_FLOAT[1] = INTDATA[25];
-  assign TEMP_FLOAT[2] = INTDATA[26];
-  assign TEMP_FLOAT[3] = INTDATA[27];
-  assign TEMP_FLOAT[4] = INTDATA[28];
-  assign TEMP_FLOAT[5] = INTDATA[29];
-  assign TEMP_FLOAT[6] = INTDATA[30];
-  assign TEMP_FLOAT[7] = INTDATA[31];
+  assign temp_float[0] = sensor_data[24];
+  assign temp_float[1] = sensor_data[25];
+  assign temp_float[2] = sensor_data[26];
+  assign temp_float[3] = sensor_data[27];
+  assign temp_float[4] = sensor_data[28];
+  assign temp_float[5] = sensor_data[29];
+  assign temp_float[6] = sensor_data[30];
+  assign temp_float[7] = sensor_data[31];
 
-  assign CRC[0] = INTDATA[32];
-  assign CRC[1] = INTDATA[33];
-  assign CRC[2] = INTDATA[34];
-  assign CRC[3] = INTDATA[35];
-  assign CRC[4] = INTDATA[36];
-  assign CRC[5] = INTDATA[37];
-  assign CRC[6] = INTDATA[38];
-  assign CRC[7] = INTDATA[39];
+  assign checksum[0] = sensor_data[32];
+  assign checksum[1] = sensor_data[33];
+  assign checksum[2] = sensor_data[34];
+  assign checksum[3] = sensor_data[35];
+  assign checksum[4] = sensor_data[36];
+  assign checksum[5] = sensor_data[37];
+  assign checksum[6] = sensor_data[38];
+  assign checksum[7] = sensor_data[39];
 
   localparam S0 = 4'b0001, S1 = 4'b0010, S2 = 4'b0011,
              S3 = 4'b0100, S4 = 4'b0101, S5 = 4'b0110,
              S6 = 4'b0111, S7 = 4'b1000, S8 = 4'b1001,
              S9 = 4'b1010, START = 4'b1011, STOP = 4'b0000;
 
-  reg [3:0] STATE = STOP;
+  reg [3:0] current_state = STOP;
 
-  always @(posedge CLK) begin
-    if (EN == 1'b1) begin
-      if (RST == 1'b1) begin
-        DHT_OUT <= 1'b1;
-        WAIT_REG <= 1'b0;
-        COUNTER <= 26'b00000000000000000000000000;
-        INTDATA <= 40'b0000000000000000000000000000000000000000;
-        DIR <= 1'b1;
+  always @(posedge clock) begin
+    if (enable == 1'b1) begin
+      if (reset == 1'b1) begin
+        hold <= 1'b0;
         error <= 1'b0;
-        STATE <= START;
+        direction <= 1'b1;
+        sensor_out <= 1'b1;
+        counter <= 26'b00000000000000000000000000;
+        sensor_data <= 40'b0000000000000000000000000000000000000000;
+        current_state <= START;
       end else begin
-        case (STATE)
+        case (current_state)
           START: begin
-            WAIT_REG <= 1'b1;
-            DIR <= 1'b1;
-            DHT_OUT <= 1'b1;
-            STATE <= S0;
+            hold <= 1'b1;
+            direction <= 1'b1;
+            sensor_out <= 1'b1;
+            current_state <= S0;
           end
 
           S0: begin
-            DIR <= 1'b1;
-            DHT_OUT <= 1'b1;
-            WAIT_REG <= 1'b1;
+            hold <= 1'b1;
             error <= 1'b0;
+            direction <= 1'b1;
+            sensor_out <= 1'b1;
 
-            if (COUNTER < 1_800_000) begin
-              COUNTER <= COUNTER + 1'b1;
+            if (counter < 1_800_000) begin
+              counter <= counter + 1'b1;
             end else begin
-              STATE   <= S1;
-              COUNTER <= 26'b00000000000000000000000000;
+              current_state <= S1;
+              counter <= 26'b00000000000000000000000000;
             end
           end
 
           S1: begin
-            DHT_OUT  <= 1'b0;
-            WAIT_REG <= 1'b1;
+            hold <= 1'b1;
+            sensor_out <= 1'b0;
 
-            if (COUNTER < 1_800_000) begin
-              COUNTER <= COUNTER + 1'b1;
+            if (counter < 1_800_000) begin
+              counter <= counter + 1'b1;
             end else begin
-              STATE   <= S2;
-              COUNTER <= 26'b00000000000000000000000000;
+              current_state <= S2;
+              counter <= 26'b00000000000000000000000000;
             end
           end
 
           S2: begin
-            DHT_OUT <= 1'b1;
+            sensor_out <= 1'b1;
 
-            if (COUNTER < 2_000) begin
-              COUNTER <= COUNTER + 1'b1;
+            if (counter < 2_000) begin
+              counter <= counter + 1'b1;
             end else begin
-              STATE <= S3;
-              DIR   <= 1'b0;
+              current_state <= S3;
+              direction <= 1'b0;
             end
           end
 
           S3: begin
-            if (COUNTER < 6_000 && DHT_IN == 1'b1) begin
-              STATE   <= S3;
-              COUNTER <= COUNTER + 1'b1;
+            if (counter < 6_000 && sensor_in == 1'b1) begin
+              current_state <= S3;
+              counter <= counter + 1'b1;
             end else begin
-              if (DHT_IN == 1'b1) begin
-                STATE   <= STOP;
-                error   <= 1'b1;
-                COUNTER <= 26'b00000000000000000000000000;
+              if (sensor_in == 1'b1) begin
+                current_state <= STOP;
+                error <= 1'b1;
+                counter <= 26'b00000000000000000000000000;
               end else begin
-                STATE   <= S4;
-                COUNTER <= 26'b00000000000000000000000000;
+                current_state <= S4;
+                counter <= 26'b00000000000000000000000000;
               end
             end
           end
 
           S4: begin
-            if (DHT_IN == 1'b0 && COUNTER < 8800) begin
-              STATE   <= S4;
-              COUNTER <= COUNTER + 1'b1;
+            if (sensor_in == 1'b0 && counter < 8800) begin
+              current_state <= S4;
+              counter <= counter + 1'b1;
             end else begin
-              if (DHT_IN == 1'b0) begin
-                STATE   <= STOP;
-                error   <= 1'b1;
-                COUNTER <= 26'b00000000000000000000000000;
+              if (sensor_in == 1'b0) begin
+                current_state <= STOP;
+                error <= 1'b1;
+                counter <= 26'b00000000000000000000000000;
               end else begin
-                STATE   <= S5;
-                COUNTER <= 26'b00000000000000000000000000;
+                current_state <= S5;
+                counter <= 26'b00000000000000000000000000;
               end
             end
           end
 
           S5: begin
-            if (DHT_IN == 1'b1 && COUNTER < 8800) begin
-              STATE   <= S5;
-              COUNTER <= COUNTER + 1'b1;
+            if (sensor_in == 1'b1 && counter < 8800) begin
+              current_state <= S5;
+              counter <= counter + 1'b1;
             end else begin
-              if (DHT_IN == 1'b1) begin
-                STATE   <= STOP;
-                error   <= 1'b1;
-                COUNTER <= 26'b00000000000000000000000000;
+              if (sensor_in == 1'b1) begin
+                current_state <= STOP;
+                error <= 1'b1;
+                counter <= 26'b00000000000000000000000000;
               end else begin
-                STATE   <= S6;
-                error   <= 1'b1;
-                index   <= 6'b000000;
-                COUNTER <= 26'b00000000000000000000000000;
+                current_state <= S6;
+                error <= 1'b1;
+                index <= 6'b000000;
+                counter <= 26'b00000000000000000000000000;
               end
             end
           end
 
           S6: begin
-            if (DHT_IN == 1'b0) begin
-              STATE <= S7;
+            if (sensor_in == 1'b0) begin
+              current_state <= S7;
             end else begin
-              STATE   <= STOP;
-              error   <= 1'b1;
-              COUNTER <= 26'b00000000000000000000000000;
+              current_state <= STOP;
+              error <= 1'b1;
+              counter <= 26'b00000000000000000000000000;
             end
           end
 
           S7: begin
-            if (DHT_IN == 1'b1) begin
-              STATE   <= S8;
-              COUNTER <= 26'b00000000000000000000000000;
+            if (sensor_in == 1'b1) begin
+              current_state <= S8;
+              counter <= 26'b00000000000000000000000000;
             end else begin
-              if (COUNTER < 3200000) begin
-                STATE   <= S7;
-                COUNTER <= COUNTER + 1'b1;
+              if (counter < 3200000) begin
+                current_state <= S7;
+                counter <= counter + 1'b1;
               end else begin
-                STATE   <= STOP;
-                error   <= 1'b1;
-                COUNTER <= 26'b00000000000000000000000000;
+                current_state <= STOP;
+                error <= 1'b1;
+                counter <= 26'b00000000000000000000000000;
               end
             end
           end
 
           S8: begin
-            if (DHT_IN == 1'b0) begin
-              if (COUNTER > 5000) begin
-                INTDATA[index] <= 1'b1;
-                DEBUG_REG <= 1'b1;
+            if (sensor_in == 1'b0) begin
+              if (counter > 5000) begin
+                debug <= 1'b1;
+                sensor_data[index] <= 1'b1;
               end else begin
-                INTDATA[index] <= 1'b0;
-                DEBUG_REG <= 1'b0;
+                debug <= 1'b0;
+                sensor_data[index] <= 1'b0;
               end
 
               if (index < 39) begin
-                STATE   <= S9;
-                COUNTER <= 26'b00000000000000000000000000;
+                current_state <= S9;
+                counter <= 26'b00000000000000000000000000;
               end else begin
+                current_state <= STOP;
                 error <= 1'b0;
-                STATE <= STOP;
               end
             end else begin
-              COUNTER <= COUNTER + 1'b1;
+              counter <= counter + 1'b1;
 
-              if (COUNTER == 3200000) begin
+              if (counter == 3200000) begin
+                current_state <= STOP;
                 error <= 1'b1;
-                STATE <= STOP;
               end
             end
           end
 
           S9: begin
+            current_state <= S6;
             index <= index + 1'b1;
-            STATE <= S6;
           end
 
           STOP: begin
-            STATE <= STOP;
+            current_state <= STOP;
 
             if (error == 1'b0) begin
-              DHT_OUT <= 1'b1;
-              WAIT_REG <= 1'b0;
-              COUNTER <= 26'b00000000000000000000000000;
-              DIR <= 1'b1;
+              hold <= 1'b0;
               error <= 1'b0;
+              direction <= 1'b1;
+              sensor_out <= 1'b1;
               index <= 6'b000000;
+              counter <= 26'b00000000000000000000000000;
             end else begin
-              if (COUNTER < 3200000) begin
-                INTDATA <= 40'b0000000000000000000000000000000000000000;
-                COUNTER <= COUNTER + 1'b1;
+              if (counter < 3200000) begin
+                hold <= 1'b1;
                 error <= 1'b1;
-                WAIT_REG <= 1'b1;
-                DIR <= 1'b0;
+                direction <= 1'b0;
+                counter <= counter + 1'b1;
+                sensor_data <= 40'b0000000000000000000000000000000000000000;
               end else begin
                 error <= 1'b0;
               end
