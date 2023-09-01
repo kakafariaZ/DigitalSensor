@@ -5,6 +5,9 @@
 *   * When using a clock 50Mhz every clock cycle takes 20ns, that is 2 x 10⁻⁵ ms. Supposing we need
 *     to wait for 18ms, it would take:
 *       - 18 / 2 x 10⁻⁵ = 900,000 cycles
+*   * To know how much time each `counter` is accounting for, just multiply the compared number by
+*   the clock period (2 x 10⁻⁵). The result is the time in milliseconds.
+*       - 900,000 * (2 x 10⁻⁵) = 18ms
 *
 * Source: https://www.youtube.com/watch?v=BkTYD7kujTk&list=PLZ8dBTV2_5HT0Gm24XcJcx43YMWRbDlxW&index=11&pp=iAQB
 *
@@ -22,9 +25,9 @@ module SensorDecoder (
     output wire [7:0] temp_int,
     output wire [7:0] temp_float,
     output wire [7:0] checksum,
-    output reg hold,
-    output reg debug,
-    output reg error
+    output reg hold,  // Signalizes that the communication is on going.
+    output reg debug,  // Can be pined to a oscilloscope input to visualize the data bits.
+    output reg error  // Signalizes that a problem has occurred on some step/state.
 );
 
   reg [39:0] sensor_data;
@@ -93,7 +96,7 @@ module SensorDecoder (
 
   reg [3:0] current_state = STOP;
 
-  always @(posedge clock) begin
+  always @(posedge clock) begin : FSM
     if (enable == 1'b1) begin
       if (reset == 1'b1) begin
         hold <= 1'b0;
@@ -105,6 +108,14 @@ module SensorDecoder (
         current_state <= START;
       end else begin
         case (current_state)
+          /**
+          * Initialize the state machine by updating the following signals:
+          *   - `sensor_out` to 1: Tells the DHT11 that the communication will start.
+          *   - `hold` to 1: Signalizes that the communication is starting.
+          *   - `direction` to 1: Allows the state machine to send signals to the sensor, see the
+          *     `TriState` module for more details.
+          *   - `current_state` to `S0`: Effectively starting the state machine.
+          */
           START: begin
             hold <= 1'b1;
             direction <= 1'b1;
@@ -112,6 +123,12 @@ module SensorDecoder (
             current_state <= S0;
           end
 
+          /**
+          * On this state the signals: `hold`, `direction` and `sensor_out` are kept on high, as
+          * the communication is still on progress.
+          * The `counter` register will be incremented until it reaches 900,000 accounting for
+          * 18ms.
+          */
           S0: begin
             hold <= 1'b1;
             error <= 1'b0;
@@ -126,6 +143,13 @@ module SensorDecoder (
             end
           end
 
+          /**
+          * On this state the signals: `hold` and `direction` are kept on high, as the communication
+          * is still on progress. `sensor_out` is set to 0 to complete the signal of request to the
+          * DHT11.
+          * The `counter` register will be incremented until it reaches 900,000 accounting for
+          * 18ms.
+          */
           S1: begin
             hold <= 1'b1;
             sensor_out <= 1'b0;
@@ -138,6 +162,12 @@ module SensorDecoder (
             end
           end
 
+
+          /**
+          * On this state we change `sensor_out` back to high level and wait for 20us (0.02ms),
+          * time needed for the DHT11 to respond to the request. Once we reach that limit, that
+          * `direction` signal is put on low, allowing the DHT11 to take over the `transmission_line`.
+          */
           S2: begin
             sensor_out <= 1'b1;
 
@@ -149,6 +179,12 @@ module SensorDecoder (
             end
           end
 
+          /**
+          * Here we wait for another 60us (0.06ms) waiting for the DHT11 to confirm the start of
+          * the communication.
+          * If the time is excedeed without any answer the `error` signal is set to high and the
+          * state machine go to the `STOP`.
+          */
           S3: begin
             if (sensor_in == 1'b1 && counter < 3_000) begin
               current_state <= S3;
@@ -165,6 +201,12 @@ module SensorDecoder (
             end
           end
 
+          /**
+          * After the DHT11 confirm the start of the communication, we need to check for the
+          * synchronization signals. The DHT11 will send a low level signal for 88us (0.088ms) -
+          * verified on `S4` - followed by a high level signal for the same period - verified on
+          * `S5`.
+          */
           S4: begin
             if (sensor_in == 1'b0 && counter < 4_400) begin
               current_state <= S4;
@@ -181,6 +223,11 @@ module SensorDecoder (
             end
           end
 
+          /**
+          * If the synchronization signals are both detected and valid, that `index` and `counter`
+          * registers will be reseted to allow the reception of the data from the sensor on the
+          * next states.
+          */
           S5: begin
             if (sensor_in == 1'b1 && counter < 4_400) begin
               current_state <= S5;
@@ -199,6 +246,10 @@ module SensorDecoder (
             end
           end
 
+          /**
+          * On this step, if the signal coming from the sensor isn't low, we have a problem on the
+          * communication, so the state machine is sent to the `STOP` state.
+          */
           S6: begin
             if (sensor_in == 1'b0) begin
               current_state <= S7;
@@ -209,6 +260,11 @@ module SensorDecoder (
             end
           end
 
+          /**
+          * Here we check if the signal coming from the DHT11 is on a high level. If not, we wait
+          * for 32ms as the sensor might have hanged for some reason. When the time limit is
+          * reached the state machine is sent to the `STOP` state.
+          */
           S7: begin
             if (sensor_in == 1'b1) begin
               current_state <= S8;
@@ -225,6 +281,14 @@ module SensorDecoder (
             end
           end
 
+          /**
+          * On this state we start receiving the data bits. The DHT11 will sent a low signal for
+          * 50us (0.05ms) followed by a high signal of variable length:
+          *   - A length of 26us to 28us (~0.02ms to 0.03ms) indicates a bit 0.
+          *   - A length of 70us (0.07ms) indicates a bit 1.
+          *
+          * The machine will be kept on this state until all the 40 bits are received.
+          */
           S8: begin
             if (sensor_in == 1'b0) begin
               if (counter > 2_500) begin
@@ -252,11 +316,21 @@ module SensorDecoder (
             end
           end
 
+          /**
+          * This state is used to guarantee that the `index` is incremented and stabilized before
+          * we begin receiving another bit.
+          */
           S9: begin
             current_state <= S6;
             index <= index + 1'b1;
           end
 
+          /**
+          * Once we reach `STOP`, we check if again if there where no problems with the
+          * communication and perform the resets of the internal/external registers. If `error`
+          * is a high logical level, we wait for another 32ms for a proper reset of the state
+          * machine.
+          */
           STOP: begin
             current_state <= STOP;
 
