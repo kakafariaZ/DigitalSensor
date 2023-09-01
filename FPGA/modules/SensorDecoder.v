@@ -1,6 +1,11 @@
 /**
 * This module implements a decoder for handling communication with the DHT11 sensor.
 *
+* Regarding the `counter` use:
+*   * When using a clock 50Mhz every clock cycle takes 20ns, that is 2 x 10⁻⁵ ms. Supposing we need
+*     to wait for 18ms, it would take:
+*       - 18 / 2 x 10⁻⁵ = 900,000 cycles
+*
 * Source: https://www.youtube.com/watch?v=BkTYD7kujTk&list=PLZ8dBTV2_5HT0Gm24XcJcx43YMWRbDlxW&index=11&pp=iAQB
 *
 * NOTE: Minor modifications were made to the original code to suit the targeted problem and for
