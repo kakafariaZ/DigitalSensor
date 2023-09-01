@@ -7,7 +7,7 @@
 #define SERIAL_PORT "/dev/ttyS0"
 #define MAX_BUFFER_SIZE 255
 
-const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21, 0x00};
+const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
 
 int main(void) {
   int fd;
@@ -35,14 +35,20 @@ int main(void) {
   /* Send data. */
   int bytes_written = sendData(fd, DATA_TO_SEND, sizeof(DATA_TO_SEND));
   if (bytes_written > 0) {
-    printf("Sent %d bytes: %s\n", bytes_written, DATA_TO_SEND);
+    printf("Sent %d bytes:\n", bytes_written);
+    for (int i = 0; i < bytes_written; i++) {
+      printf("%c%s", DATA_TO_SEND[i], (i == bytes_written - 1) ? "\n" : "");
+    }
   }
 
   /* Receive data. */
   int bytes_read = receiveData(fd, buffer, sizeof(buffer));
   if (bytes_read > 0) {
     buffer[bytes_read] = '\0';
-    printf("Received %d bytes: %s\n", bytes_read, buffer);
+    printf("Received %d bytes:\n", bytes_read);
+    for (int i = 0; i < bytes_read; i++) {
+      printf("%c%s", buffer[i], (i == bytes_read - 1) ? "\n" : "");
+    }
   }
 
   /* Close the serial port. */
