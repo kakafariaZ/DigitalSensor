@@ -48,7 +48,7 @@ set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
-set_global_assignment -name EDA_SIMULATION_TOOL "QuestaSim (Verilog)"
+set_global_assignment -name EDA_SIMULATION_TOOL "Questa Intel FPGA (Verilog)"
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_timing
@@ -56,15 +56,48 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH ClockDividerTB -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH UART_TB -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME ClockDividerTB -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id ClockDividerTB
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME ClockDividerTB -section_id ClockDividerTB
-set_global_assignment -name EDA_TEST_BENCH_FILE ClockDividerTB.v -section_id ClockDividerTB
-set_global_assignment -name VERILOG_FILE UART_TX.v
-set_global_assignment -name VERILOG_FILE UART_RX.v
-set_global_assignment -name VERILOG_FILE ClockDivider.v
-set_global_assignment -name VERILOG_FILE DigitalSensor.v
+set_global_assignment -name EDA_TEST_BENCH_NAME BinaryToDisplayTB -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id BinaryToDisplayTB
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME BinaryToDisplayTB -section_id BinaryToDisplayTB
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id UART_TB
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME UART_TB -section_id UART_TB
+set_global_assignment -name EDA_TEST_BENCH_NAME UART_TB -section_id eda_simulation
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/ClockDividerTB.v -section_id ClockDividerTB
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/BinaryToDisplayTB.v -section_id BinaryToDisplayTB
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/UART_TB.v -section_id UART_TB
+set_location_assignment PIN_W2 -to first_digit[0]
+set_location_assignment PIN_T22 -to clock
+set_location_assignment PIN_V2 -to first_digit[6]
+set_location_assignment PIN_V1 -to first_digit[5]
+set_location_assignment PIN_U2 -to first_digit[4]
+set_location_assignment PIN_U1 -to first_digit[3]
+set_location_assignment PIN_Y2 -to first_digit[2]
+set_location_assignment PIN_Y1 -to first_digit[1]
+set_location_assignment PIN_Y22 -to has_data_tx
+set_location_assignment PIN_C3 -to incoming_bit
+set_location_assignment PIN_W21 -to reset
+set_location_assignment PIN_R5 -to second_digit[6]
+set_location_assignment PIN_T5 -to second_digit[5]
+set_location_assignment PIN_T3 -to second_digit[4]
+set_location_assignment PIN_T4 -to second_digit[3]
+set_location_assignment PIN_M6 -to second_digit[2]
+set_location_assignment PIN_N7 -to second_digit[1]
+set_location_assignment PIN_N6 -to second_digit[0]
+set_location_assignment PIN_C4 -to sending_bit
+set_global_assignment -name VERILOG_FILE testbenchs/UART_TB.v
+set_global_assignment -name VERILOG_FILE testbenchs/ClockDividerTB.v
+set_global_assignment -name VERILOG_FILE testbenchs/BinaryToDisplayTB.v
+set_global_assignment -name VERILOG_FILE modules/DigitalSensor.v
+set_global_assignment -name VERILOG_FILE modules/TriState.v
+set_global_assignment -name VERILOG_FILE modules/SensorDecoder.v
+set_global_assignment -name VERILOG_FILE modules/ClockDivider.v
+set_global_assignment -name VERILOG_FILE modules/BinaryToDisplay.v
+set_global_assignment -name VERILOG_FILE modules/UART_RX.v
+set_global_assignment -name VERILOG_FILE modules/UART_TX.v
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
