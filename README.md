@@ -21,8 +21,7 @@
 
 # License
 
-Released under the [MIT](https://github.com/gersonfaneto/DataStructures/blob/main/LICENSE)
-license by:
+Released under the [MIT](https://github.com/gersonfaneto/DigitalSensor/blob/main/LICENSE) license by:
 
 - [Everton Vinicius da Silva Ferreira](https://github.com/Yamis4n)
 - [Gerson Ferreira dos Anjos Neto](https://github.com/gersonfaneto)
