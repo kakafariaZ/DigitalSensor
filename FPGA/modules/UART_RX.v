@@ -6,7 +6,7 @@
 * Parameters:
 *   - `CLOCKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
 *     e.g.: 10 MHz Clock and 115,200 Baud UART
-*     (10,000,000) / (115,200) = 87 CLOCKS_PER_BIT
+*     (50,000,000) / (115,200) = 434 `CLOCKS_PER_BIT`
 *
 * Source: https://nandland.com/uart-serial-port-module/
 *
@@ -15,7 +15,7 @@
 */
 
 module UART_RX #(
-    parameter CLOCKS_PER_BIT = 87
+    parameter CLOCKS_PER_BIT = 434
 ) (
     input  wire       clock,
     input  wire       incoming_bit,
@@ -24,7 +24,7 @@ module UART_RX #(
 );
 
   reg [2:0] current_index;
-  reg [7:0] counter;
+  reg [8:0] counter;
 
   reg       current_bit_buffer;
   reg       current_bit;

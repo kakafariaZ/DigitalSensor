@@ -13,26 +13,19 @@ module DigitalSensor (
     output wire [6:0] second_digit
 );
 
-  wire div_clock;
   wire has_data;
 
   wire [7:0] data_received;
 
-  ClockDivider CD0 (
-      .clock(clock),
-      .reset(reset),
-      .div_clock(div_clock)
-  );
-
   UART_RX RX0 (
-      .clock(div_clock),
+      .clock(clock),
       .incoming_bit(incoming_bit),
       .has_data(has_data),
       .data_received(data_received)
   );
 
   UART_TX TX0 (
-      .clock(div_clock),
+      .clock(clock),
       .has_data(has_data),
       .data_to_send(data_received),
       .sending_bit(sending_bit),
@@ -41,8 +34,8 @@ module DigitalSensor (
   );
 
   BinaryToDisplay BD0 (
-      .clock(div_clock),
-      .binary_number(data_received[7:4]),
+      .clock(clock),
+      .binary_number(data_received[3:0]),
       .segment_a(first_digit[6]),
       .segment_b(first_digit[5]),
       .segment_c(first_digit[4]),
@@ -53,8 +46,8 @@ module DigitalSensor (
   );
 
   BinaryToDisplay BD1 (
-      .clock(div_clock),
-      .binary_number(data_received[3:0]),
+      .clock(clock),
+      .binary_number(data_received[7:4]),
       .segment_a(second_digit[6]),
       .segment_b(second_digit[5]),
       .segment_c(second_digit[4]),
