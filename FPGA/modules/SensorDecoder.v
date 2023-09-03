@@ -9,7 +9,7 @@
 *   the clock period (2 x 10⁻⁵). The result is the time in milliseconds.
 *       - 900,000 * (2 x 10⁻⁵) = 18ms
 *
-* Source: https://www.youtube.com/watch?v=BkTYD7kujTk&list=PLZ8dBTV2_5HT0Gm24XcJcx43YMWRbDlxW&index=11&pp=iAQB
+* Source: https://youtu.be/BkTYD7kujTk?feature=shared
 *
 * NOTE: Minor modifications were made to the original code to suit the targeted problem and for
 * better understanding of the working group.
@@ -44,50 +44,13 @@ module SensorDecoder (
       .read(sensor_in)
   );
 
-  assign hum_int[0] = sensor_data[0];
-  assign hum_int[1] = sensor_data[1];
-  assign hum_int[2] = sensor_data[2];
-  assign hum_int[3] = sensor_data[3];
-  assign hum_int[4] = sensor_data[4];
-  assign hum_int[5] = sensor_data[5];
-  assign hum_int[6] = sensor_data[6];
-  assign hum_int[7] = sensor_data[7];
+  assign hum_int = sensor_data[7:0];
+  assign hum_float = sensor_data[15:8];
 
-  assign hum_float[0] = sensor_data[8];
-  assign hum_float[1] = sensor_data[9];
-  assign hum_float[2] = sensor_data[10];
-  assign hum_float[3] = sensor_data[11];
-  assign hum_float[4] = sensor_data[12];
-  assign hum_float[5] = sensor_data[13];
-  assign hum_float[6] = sensor_data[14];
-  assign hum_float[7] = sensor_data[15];
+  assign temp_int = sensor_data[23:16];
+  assign temp_float = sensor_data[31:24];
 
-  assign temp_int[0] = sensor_data[16];
-  assign temp_int[1] = sensor_data[17];
-  assign temp_int[2] = sensor_data[18];
-  assign temp_int[3] = sensor_data[19];
-  assign temp_int[4] = sensor_data[20];
-  assign temp_int[5] = sensor_data[21];
-  assign temp_int[6] = sensor_data[22];
-  assign temp_int[7] = sensor_data[23];
-
-  assign temp_float[0] = sensor_data[24];
-  assign temp_float[1] = sensor_data[25];
-  assign temp_float[2] = sensor_data[26];
-  assign temp_float[3] = sensor_data[27];
-  assign temp_float[4] = sensor_data[28];
-  assign temp_float[5] = sensor_data[29];
-  assign temp_float[6] = sensor_data[30];
-  assign temp_float[7] = sensor_data[31];
-
-  assign checksum[0] = sensor_data[32];
-  assign checksum[1] = sensor_data[33];
-  assign checksum[2] = sensor_data[34];
-  assign checksum[3] = sensor_data[35];
-  assign checksum[4] = sensor_data[36];
-  assign checksum[5] = sensor_data[37];
-  assign checksum[6] = sensor_data[38];
-  assign checksum[7] = sensor_data[39];
+  assign checksum = sensor_data[39:32];
 
   localparam [3:0] S0 = 4'b0001, S1 = 4'b0010, S2 = 4'b0011,
                    S3 = 4'b0100, S4 = 4'b0101, S5 = 4'b0110,
