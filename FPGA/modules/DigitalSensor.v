@@ -30,8 +30,8 @@ module DigitalSensor (
 
   RequestHandler RH0 (
       .clock(clock),
-      .has_request(data_received),
-      .received_data(has_data),
+      .has_request(has_data),
+      .received_data(data_received),
       .request(request),
       .device_selector(device_selector)
   );
