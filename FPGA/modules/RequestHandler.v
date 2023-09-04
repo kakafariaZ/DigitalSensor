@@ -14,7 +14,7 @@ module RequestHandler (
 
   localparam [2:0] REQUEST = 2'b00, ADDRESS = 2'b01, SELECT = 2'b10;
 
-  reg current_state;
+  reg [2:0] current_state;
 
   always @(posedge clock) begin
     if (has_request == 1'b1) begin

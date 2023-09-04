@@ -21,8 +21,6 @@ module SensorDecoder (
   wire [7:0] temp_float;
   wire [7:0] checksum;
 
-  wire w_done11;
-
   reg reset_sensor;
   reg enable_sensor;
 
