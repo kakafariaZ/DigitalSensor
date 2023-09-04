@@ -15,7 +15,7 @@
 * better understanding of the working group.
 */
 
-module SensorDecoder (
+module DHT11 (
     input wire clock,
     input wire enable,
     input wire reset,
@@ -318,6 +318,7 @@ module SensorDecoder (
           end
 
           default: begin
+            current_state <= STOP;
           end
         endcase
       end
