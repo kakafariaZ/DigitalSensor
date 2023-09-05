@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 /**
 * This is the main module of the project.
 */
