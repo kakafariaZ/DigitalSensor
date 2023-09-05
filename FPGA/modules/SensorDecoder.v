@@ -10,6 +10,7 @@ module SensorDecoder (
     input wire clock,
     input wire enable,
     inout wire transmission_line,
+    input wire [31:0] device_selector,
     input wire [7:0] request,
     output reg [7:0] requested_data,
     output reg finished
@@ -30,7 +31,7 @@ module SensorDecoder (
 
   DHT11 SS0 (
       .clock(clock),
-      .enable(enable_sensor),
+      .enable(enable_sensor & device_selector[0]),
       .reset(reset_sensor),
       .transmission_line(transmission_line),
       .hum_int(hum_int),

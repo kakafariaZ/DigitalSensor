@@ -41,22 +41,28 @@ module DigitalSensor (
   );
 
   wire [31:0] device_selector;
-  wire [ 7:0] request;
+  wire [7:0] request;
+  wire device_selected;
 
   RequestHandler RH0 (
       .clock(clock),
       .has_request(has_data),
       .received_data(data_received),
+      .device_selected(device_selected),
       .request(request),
       .device_selector(device_selector)
   );
 
   wire [7:0] requested_data;
   wire       finished;
+  wire       enable;
+
+  assign enable = device_selected;
 
   SensorDecoder SD0 (
       .clock(clock),
-      .enable(device_selector[0]),
+      .enable(enable),
+      .device_selector(device_selector),
       .transmission_line(transmission_line),
       .request(request),
       .requested_data(requested_data),

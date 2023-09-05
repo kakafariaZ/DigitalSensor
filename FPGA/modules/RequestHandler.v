@@ -12,9 +12,10 @@
 * indicating that the sensor will be activated.
 */
 module RequestHandler (
-    input clock,
-    input has_request,
-    input [7:0] received_data,
+    input wire clock,
+    input wire has_request,
+    input wire [7:0] received_data,
+    output wire device_selected,
     output reg [7:0] request,
     output reg [31:0] device_selector
 );
@@ -51,5 +52,12 @@ module RequestHandler (
       endcase
     end
   end
+
+  /**
+  * Performs a bitwise `or` operation on the `device_selector` to check if any known device was
+  * selected. The output of the operation, the `enable` signal, is used to trigger the
+  * `SensorDecoder` state machine.
+  */
+  assign device_selected = |device_selector;
 
 endmodule
