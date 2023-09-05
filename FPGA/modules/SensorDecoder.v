@@ -77,11 +77,31 @@ module SensorDecoder (
             requested_data <= 8'h10;
           end else begin
             case (request)
-              8'h00:   requested_data <= (error == 1'b1) ? 8'h10 : 8'h11;
-              8'h01:   requested_data <= temp_int;
-              8'h02:   requested_data <= temp_float;
-              8'h03:   requested_data <= hum_int;
-              8'h04:   requested_data <= hum_float;
+              8'h00: begin
+                finished <= 1'b1;
+                current_state <= FINISH;
+                requested_data <= (error == 1'b1) ? 8'h10 : 8'h11;
+              end
+              8'h01: begin
+                finished <= 1'b1;
+                current_state <= FINISH;
+                requested_data <= temp_int;
+              end
+              8'h02: begin
+                finished <= 1'b1;
+                current_state <= FINISH;
+                requested_data <= temp_float;
+              end
+              8'h03: begin
+                finished <= 1'b1;
+                current_state <= FINISH;
+                requested_data <= hum_int;
+              end
+              8'h04: begin
+                finished <= 1'b1;
+                current_state <= FINISH;
+                requested_data <= hum_float;
+              end
               8'h05: begin
                 current_part <= INT;
                 current_state <= LOOP;
@@ -92,11 +112,13 @@ module SensorDecoder (
                 current_state <= LOOP;
                 selected_measure <= HUM;
               end
-              default: requested_data <= 8'b00000000;
+              default: begin
+                finished <= 1'b1;
+                current_state <= FINISH;
+                requested_data <= 8'b00000000;
+              end
             endcase
           end
-          finished <= 1'b1;
-          current_state <= FINISH;
         end else begin
           current_state <= SEND;
         end
@@ -125,6 +147,7 @@ module SensorDecoder (
             default: requested_data <= 8'b00000000;
           endcase
         end else begin
+          finished <= 1'b1;
           current_state <= FINISH;
         end
       end
