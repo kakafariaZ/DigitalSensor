@@ -44,9 +44,15 @@ module SensorDecoder (
       .error(error)
   );
 
-  localparam [1:0] IDLE = 2'b00, READ = 2'b01, SEND = 2'b10, FINISH = 2'b11;
+  localparam [2:0] IDLE = 3'b000, READ = 3'b001, SEND = 3'b010, LOOP = 3'b011, FINISH = 3'b100;
 
-  reg [1:0] current_state = IDLE;
+  reg [2:0] current_state = IDLE;
+
+  localparam TEMP = 1'b1, HUM = 1'b0;
+  localparam INT = 1'b1, FLOAT = 1'b0;
+
+  reg selected_measure;
+  reg current_part;
 
   always @(posedge clock) begin
     case (current_state)
@@ -76,16 +82,49 @@ module SensorDecoder (
               8'h02:   requested_data <= temp_float;
               8'h03:   requested_data <= hum_int;
               8'h04:   requested_data <= hum_float;
-              8'h05:   requested_data <= 8'b00000000;  // TODO: Act. C.M. Temp.
-              8'h06:   requested_data <= 8'b00000000;  // TODO: Act. C.M. Hum.
-              8'h07:   requested_data <= 8'b00000000;  // TODO: Deact. C.M. Temp.
-              8'h08:   requested_data <= 8'b00000000;  // TODO: Deact. C.M. Hum.
-              8'hCB:   requested_data <= 8'b00000000;  // TODO: Begin Comm.
-              8'hCD:   requested_data <= 8'b00000000;  // TODO: Drop Comm.
+              8'h05: begin
+                current_part <= INT;
+                current_state <= LOOP;
+                selected_measure <= TEMP;
+              end
+              8'h06: begin
+                current_part <= INT;
+                current_state <= LOOP;
+                selected_measure <= HUM;
+              end
               default: requested_data <= 8'b00000000;
             endcase
           end
           finished <= 1'b1;
+          current_state <= FINISH;
+        end else begin
+          current_state <= SEND;
+        end
+      end
+      LOOP: begin
+        if (request != 8'h07 & request != 8'h08) begin
+          case (selected_measure)
+            TEMP: begin
+              if (current_part == INT) begin
+                requested_data <= temp_int;
+                current_part   <= FLOAT;
+              end else begin
+                requested_data <= temp_float;
+                current_part   <= INT;
+              end
+            end
+            HUM: begin
+              if (current_part == INT) begin
+                requested_data <= hum_int;
+                current_part   <= FLOAT;
+              end else begin
+                requested_data <= hum_float;
+                current_part   <= INT;
+              end
+            end
+            default: requested_data <= 8'b00000000;
+          endcase
+        end else begin
           current_state <= FINISH;
         end
       end
