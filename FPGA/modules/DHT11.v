@@ -202,7 +202,7 @@ module DHT11 (
                 counter <= 21'b000000000000000000000000000;
               end else begin
                 current_state <= S6;
-                error <= 1'b1;
+                error <= 1'b0;
                 index <= 6'b000000;
                 counter <= 21'b000000000000000000000000000;
               end
@@ -272,7 +272,7 @@ module DHT11 (
             end else begin
               counter <= counter + 1'b1;
 
-              if (counter == 1_600_000) begin
+              if (counter > 1_600_000) begin
                 current_state <= STOP;
                 error <= 1'b1;
               end
