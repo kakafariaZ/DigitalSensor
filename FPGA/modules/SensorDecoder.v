@@ -124,7 +124,7 @@ module SensorDecoder (
         end
       end
       LOOP: begin
-        if (request != 8'h07 & request != 8'h08) begin
+        if (request != 8'h07 || request != 8'h08) begin
           case (selected_measure)
             TEMP: begin
               if (current_part == INT) begin
