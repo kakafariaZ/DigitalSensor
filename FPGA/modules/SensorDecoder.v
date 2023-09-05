@@ -8,10 +8,10 @@
 module SensorDecoder (
     input wire clock,
     input wire enable,
-    inout wire transmission_line,  // Entrada e saída do sensor DHT11
-    input wire [7:0] request,  // Byte de requisição do dado
-    output reg [7:0] requested_data,  // Saida do dado da interface
-    output reg finished  // Bit para informar se o processo foi terminado
+    inout wire transmission_line,
+    input wire [7:0] request,
+    output reg [7:0] requested_data,
+    output reg finished
 
 );
 
@@ -67,13 +67,21 @@ module SensorDecoder (
       SEND: begin
         if (hold == 1'b0) begin
           if (error == 1'b1) begin
-            requested_data <= 8'b10000000;
+            requested_data <= 8'h10;
           end else begin
             case (request)
-              // TODO: Complete with the proper encoding.
-              default: begin
-                requested_data <= 8'b00000000;
-              end
+              8'h00: requested_data <= (error == 1'b1) ? 8'h10 : 8'h11;
+              8'h01: requested_data <= temp_int;
+              8'h02: requested_data <= temp_float;
+              8'h03: requested_data <= hum_int;
+              8'h04: requested_data <= hum_float;
+              8'h05: requested_data <= 8'b00000000; // TODO: Act. C.M. Temp.
+              8'h06: requested_data <= 8'b00000000; // TODO: Act. C.M. Hum.
+              8'h07: requested_data <= 8'b00000000; // TODO: Deact. C.M. Temp.
+              8'h08: requested_data <= 8'b00000000; // TODO: Deact. C.M. Hum.
+              8'hCB: requested_data <= 8'b00000000; // TODO: Begin Comm.
+              8'hCD: requested_data <= 8'b00000000; // TODO: Drop Comm.
+              default: requested_data <= 8'b00000000;
             endcase
           end
           finished <= 1'b1;
