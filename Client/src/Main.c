@@ -5,6 +5,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "include/Codes.h"
+
 #define SERIAL_PORT "/dev/ttyS0"
 #define MAX_BUFFER_SIZE 255
 
@@ -23,13 +25,49 @@ int receiveData(int fd, void *buffer, size_t size);
 void openPort(int *fileDescriptor);
 
 int main(void) {
-  int fileDescriptor;
+  /* int fileDescriptor; */
+  int request = 0;
 
-  openPort(&fileDescriptor);
+  printf("Select on one of the following options:             \n");
+  printf("  1 - Request current status of a device.           \n");
+  printf("  2 - Request temperature level.                    \n");
+  printf("  3 - Request humidity level.                       \n");
+  printf("  4 - Activate continuos monitoring - Temperature.  \n");
+  printf("  5 - Activate continuos monitoring - humidity.     \n");
+  printf("  0 - Quit.                                         \n");
+  printf("> ");
 
-  printf("Hello, World!\n");
+  scanf("%d%*c", &request);
 
-  close(fileDescriptor);
+  while (request < 0 || request > 5) {
+    printf("Invalid option! Please select from the ones listed above...\n");
+    printf("> ");
+    scanf("%d%*c", &request);
+  }
+
+  system("clear");
+
+  switch (request) {
+    case 0:
+      printf("Finishing...\n");
+      break;
+    case 1:
+      break;
+    case 2:
+      break;
+    case 3:
+      break;
+    case 4:
+      break;
+    case 5:
+      break;
+    default:
+      break;
+  }
+
+  /* openPort(&fileDescriptor); */
+
+  /* close(fileDescriptor); */
 
   return 0;
 }
