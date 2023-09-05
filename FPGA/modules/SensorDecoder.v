@@ -1,8 +1,9 @@
 /**
-* This module implements a high level facade for handling responses off up to 32 different sensors.
+* This module implements a high level 'Facade' for handling the information comming from the
+* available sensors and delivering them properly per the requests given by the 'Client'.
 *
-* NOTE: Currently only working with the DHT11 sensor, whose module is found in this project by the
-* name of `DHT11.v`.
+* NOTE: Currently only working with the DHT11 sensor, whose module can be found in this project
+* under the name of `DHT11.v`.
 */
 
 module SensorDecoder (
@@ -12,7 +13,6 @@ module SensorDecoder (
     input wire [7:0] request,
     output reg [7:0] requested_data,
     output reg finished
-
 );
 
   wire [7:0] hum_int;
@@ -70,17 +70,17 @@ module SensorDecoder (
             requested_data <= 8'h10;
           end else begin
             case (request)
-              8'h00: requested_data <= (error == 1'b1) ? 8'h10 : 8'h11;
-              8'h01: requested_data <= temp_int;
-              8'h02: requested_data <= temp_float;
-              8'h03: requested_data <= hum_int;
-              8'h04: requested_data <= hum_float;
-              8'h05: requested_data <= 8'b00000000; // TODO: Act. C.M. Temp.
-              8'h06: requested_data <= 8'b00000000; // TODO: Act. C.M. Hum.
-              8'h07: requested_data <= 8'b00000000; // TODO: Deact. C.M. Temp.
-              8'h08: requested_data <= 8'b00000000; // TODO: Deact. C.M. Hum.
-              8'hCB: requested_data <= 8'b00000000; // TODO: Begin Comm.
-              8'hCD: requested_data <= 8'b00000000; // TODO: Drop Comm.
+              8'h00:   requested_data <= (error == 1'b1) ? 8'h10 : 8'h11;
+              8'h01:   requested_data <= temp_int;
+              8'h02:   requested_data <= temp_float;
+              8'h03:   requested_data <= hum_int;
+              8'h04:   requested_data <= hum_float;
+              8'h05:   requested_data <= 8'b00000000;  // TODO: Act. C.M. Temp.
+              8'h06:   requested_data <= 8'b00000000;  // TODO: Act. C.M. Hum.
+              8'h07:   requested_data <= 8'b00000000;  // TODO: Deact. C.M. Temp.
+              8'h08:   requested_data <= 8'b00000000;  // TODO: Deact. C.M. Hum.
+              8'hCB:   requested_data <= 8'b00000000;  // TODO: Begin Comm.
+              8'hCD:   requested_data <= 8'b00000000;  // TODO: Drop Comm.
               default: requested_data <= 8'b00000000;
             endcase
           end

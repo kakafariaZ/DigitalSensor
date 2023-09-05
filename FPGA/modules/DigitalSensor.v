@@ -1,5 +1,22 @@
 /**
-* This is the main module of the project.
+* This is the main module of the `DigitalSensor` project. Here the inputs are properly handled to
+* their respective sub modules, which are also connected internally by wires and buses. This design
+* was chosen to make the system more concise and modular.
+*
+* Brief description of the roles of each sub module:
+*   - `UART_RX`: Handles the reception of data coming from the 'Client' via the UART protocol.
+*
+*   - `RequestHandler`: Handles the storage and part of the decoding of the data received by
+*   the `UART_RX`.
+*
+*   - `SensorDecoder`: Act as a 'Facade' for the sub modules for the available sensors, decoding
+*   the other part of the data coming from the `RequestHandler` to return the proper information.
+*
+*   - `UART_TX`: Sends the information produced by the other sub modules back to the 'Client' via
+*   the UART protocol.
+*
+* NOTE: Some of the modules and outputs are commented out, as they were only used during the
+* testing of the prototype, although they may be used on the next phases of development.
 */
 
 module DigitalSensor (

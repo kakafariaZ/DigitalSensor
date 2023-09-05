@@ -1,6 +1,15 @@
 /**
-* This module implements a decoder for handling the requests given to the FPGA. The handling is
-* based on the established communication protocol found in - (LINK).
+* This module implements a decoder for handling the information comming from the 'Client'. It
+* receives the two bytes representing, respectively, the request code and address of the targeted
+* sensor.
+*
+* The `request` is stored and will be used in the `SensorDecoder` module to determine which
+* information will be sent back, and the `device_selector` represents the set of avaliable sensors,
+* each of the bits representing one of the avaliable sensors.
+*
+* NOTE: Currently, the only mapped address/device is the DHT11, assigned to the LSB bit of the
+* `device_selector`. When it's address is decoded, said bit is driven to a high logical level,
+* indicating that the sensor will be activated.
 */
 module RequestHandler (
     input clock,

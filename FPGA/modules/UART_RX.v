@@ -19,8 +19,8 @@ module UART_RX #(
 ) (
     input  wire       clock,
     input  wire       incoming_bit,
-    output reg       has_data,
-    output reg [7:0] data_received
+    output reg        has_data,
+    output reg  [7:0] data_received
 );
 
   reg [2:0] current_index;
