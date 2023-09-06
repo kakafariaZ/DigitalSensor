@@ -31,23 +31,28 @@ module DigitalSensor (
 );
 
   wire [7:0] data_received;
-  wire has_data;
+  wire has_data_rx;
 
   UART_RX RX0 (
       .clock(clock),
       .incoming_bit(incoming_bit),
-      .has_data(has_data),
+      .has_data(has_data_rx),
       .data_received(data_received)
   );
 
-  wire [31:0] device_selector;
-  wire [7:0] request;
+  wire has_request;
+  wire [7:0] received_data;
   wire device_selected;
+  wire [7:0] request;
+  wire [31:0] device_selector;
 
-  RequestHandler RH0 (
+  assign has_request   = has_data_rx;
+  assign received_data = data_received;
+
+  RequestHandler REQ0 (
       .clock(clock),
-      .has_request(has_data),
-      .received_data(data_received),
+      .has_request(has_request),
+      .received_data(received_data),
       .device_selected(device_selected),
       .request(request),
       .device_selector(device_selector)
@@ -69,10 +74,35 @@ module DigitalSensor (
       .finished(finished)
   );
 
+  wire has_response;
+  wire [7:0] request_code;
+  wire [7:0] data_to_send_rh;
+  wire response_ready;
+  wire [7:0] response;
+
+  assign has_response = finished;
+  assign request_code = request;
+  assign data_to_send_rh = requested_data;
+
+  ResponseHandler RESH0 (
+      .clock(clock),
+      .has_response(has_response),
+      .request_code(request_code),
+      .data_to_send(data_to_send_rh),
+      .response_ready(response_ready),
+      .response(response)
+  );
+
+  wire has_data_tx;
+  wire [7:0] data_to_send_tx;
+
+  assign has_data_tx = response_ready;
+  assign data_to_send_tx = response;
+
   UART_TX TX0 (
       .clock(clock),
-      .has_data(finished),
-      .data_to_send(requested_data),
+      .has_data(has_data_tx),
+      .data_to_send(data_to_send_tx),
       .sending_bit(sending_bit),
       .is_transmitting(is_transmitting),
       .transmission_done(transmission_done)

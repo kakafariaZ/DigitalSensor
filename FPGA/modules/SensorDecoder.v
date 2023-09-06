@@ -80,7 +80,7 @@ module SensorDecoder (
               8'h00: begin
                 finished <= 1'b1;
                 current_state <= FINISH;
-                requested_data <= (error == 1'b1) ? 8'h10 : 8'h11;
+                requested_data <= (error == 1'b1) ? 8'h10 : 8'h11; // WARN: This sould be in `ResponseHandler`!
               end
               8'h01: begin
                 finished <= 1'b1;
