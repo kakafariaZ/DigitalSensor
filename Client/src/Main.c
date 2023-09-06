@@ -31,8 +31,8 @@ void *continuosMode(void *arg);
 // Selects a sensor address.
 int chooseSensor();
 
-// TODO: What does this do...?
-int transmition(int *fd, char *dataToSend, char *buffer);
+// TODO: What does this do...? - Gerson
+int handleTransmission(int *fd, char *dataToSend, char *buffer);
 
 int main(void) {
   int fileDescriptor;
@@ -76,7 +76,7 @@ int main(void) {
       break;
     case 1:
       dataToSend[0] = 0x00;
-      transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
+      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
@@ -89,14 +89,14 @@ int main(void) {
 
     case 2:
       dataToSend[0] = 0x01;  // asking for the whole part from temperature
-      transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
+      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
       whole_part = (int)buffer[1];
       dataToSend[0] = 0x02;  // asking for the fractional part from temperature
-      transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
+      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
@@ -108,14 +108,14 @@ int main(void) {
 
     case 3:
       dataToSend[0] = 0x03;  // asking for the whole part from humidity
-      transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
+      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
       whole_part = (int)buffer[1];
       dataToSend[0] = 0x04;  // asking for the fractional part from humidity
-      transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
+      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
@@ -225,7 +225,7 @@ int chooseSensor() {
   return choosedSensor;
 }
 
-int transmition(int *fd, char *dataToSend, char *buffer) {
+int handleTransmission(int *fd, char *dataToSend, char *buffer) {
   int bytes_written = sendData(*fd, dataToSend, sizeof(dataToSend));
   if (bytes_written > 0) {
     printf("Sent %d bytes:\n", bytes_written);  // debug
