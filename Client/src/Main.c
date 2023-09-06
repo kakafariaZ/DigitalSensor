@@ -11,7 +11,7 @@
 #define MAX_BUFFER_SIZE 255
 
 const int QNT_SENSOR = 1;
-//const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
+// const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
 
 // Configure the settings for the communication with the serial port.
 int configureSerialPort(int fd);
@@ -31,16 +31,17 @@ void *continuosMode(void *arg);
 // Selects a sensor address.
 int chooseSensor();
 
+// TODO: What does this do...?
+int transmition(int *fd, char *dataToSend, char *buffer);
 
 int main(void) {
-  
   int fileDescriptor;
   int request = 0;
   int choosedSensor;
   int transmition_error;
   int whole_part, fractional_part;
   char availableSensors[] = {0x20};
-  char dataToSend[2], buffer[2]; //see protocol.md file
+  char dataToSend[2], buffer[2];  // see protocol.md file
 
   printf("Select on one of the following options:             \n");
   printf("  1 - Request current status of a device.           \n");
@@ -60,14 +61,15 @@ int main(void) {
   }
 
   system("clear");
-  if (request != 0){  // if the user don't quit
-    openPort(&fileDescriptor); // Opens the serial port
-    if (configureSerialPort(fileDescriptor)) 
-      return 1; // quit the program if cant configure port
+  if (request != 0) {           // if the user don't quit
+    openPort(&fileDescriptor);  // Opens the serial port
+    if (configureSerialPort(fileDescriptor))
+      return 1;  // quit the program if cant configure port
 
-    dataToSend[1] = chooseSensor(); // Second byte of the comunication is the sensor addres;  
+    dataToSend[1] = chooseSensor();  // Second byte of the comunication is the
+                                     // sensor addres;
   }
-  
+
   switch (request) {
     case 0:
       printf("Finishing...\n");
@@ -75,7 +77,7 @@ int main(void) {
     case 1:
       dataToSend[0] = 0x00;
       transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error){
+      if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
@@ -86,44 +88,43 @@ int main(void) {
       break;
 
     case 2:
-      dataToSend[0] = 0x01; // asking for the whole part from temperature
+      dataToSend[0] = 0x01;  // asking for the whole part from temperature
       transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error){
+      if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
-      whole_part = (int) buffer[1];
-      dataToSend[0] = 0x02; // asking for the fractional part from temperature
+      whole_part = (int)buffer[1];
+      dataToSend[0] = 0x02;  // asking for the fractional part from temperature
       transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error){
+      if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
-      fractional_part = (int) buffer[1];
+      fractional_part = (int)buffer[1];
       printf("Temperature of Sensor %d: \n", choosedSensor);
       printf("   %d.%d\n", whole_part, fractional_part);
       break;
 
     case 3:
-    dataToSend[0] = 0x03; // asking for the whole part from humidity
+      dataToSend[0] = 0x03;  // asking for the whole part from humidity
       transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error){
+      if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
-      whole_part = (int) buffer[1];
-      dataToSend[0] = 0x04; // asking for the fractional part from humidity
+      whole_part = (int)buffer[1];
+      dataToSend[0] = 0x04;  // asking for the fractional part from humidity
       transmition_error = transmition(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error){
+      if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
-      fractional_part = (int) buffer[1];
+      fractional_part = (int)buffer[1];
       printf("Humidity of Sensor %d: \n", choosedSensor);
       printf("   %d.%d\n", whole_part, fractional_part);
       break;
 
-      
     case 4:
       break;
     case 5:
@@ -207,44 +208,41 @@ int receiveData(int fd, void *buffer, size_t size) {
   return bytes_read;
 }
 
-int chooseSensor(){
+int chooseSensor() {
   int choosedSensor = -1;
-  do{
-  printf("Choose the sensor:\n");
-  printf("  1 - DHT11 (0x20)\n");
-  printf("> ");
-  scanf("%d%*c", &choosedSensor);
-  choosedSensor--;
-  if (choosedSensor < 0 || chooseSensor > QNT_SENSOR){
-    printf("Please choose one of the following sensors...\n");
-    sleep(1);
-    system("clear");
-  }
-  }while (choosedSensor < 0 || chooseSensor > QNT_SENSOR);
+  do {
+    printf("Choose the sensor:\n");
+    printf("  1 - DHT11 (0x20)\n");
+    printf("> ");
+    scanf("%d%*c", &choosedSensor);
+    choosedSensor--;
+    if (choosedSensor < 0 || chooseSensor > QNT_SENSOR) {
+      printf("Please choose one of the following sensors...\n");
+      sleep(1);
+      system("clear");
+    }
+  } while (choosedSensor < 0 || chooseSensor > QNT_SENSOR);
   return choosedSensor;
 }
 
-
-int transmition(int *fd, char *dataToSend, char *buffer){
+int transmition(int *fd, char *dataToSend, char *buffer) {
   int bytes_written = sendData(*fd, dataToSend, sizeof(dataToSend));
-    if (bytes_written > 0) {
-      printf("Sent %d bytes:\n", bytes_written); // debug
-      for (int i = 0; i < bytes_written; i++) {
-        printf("%c%s", dataToSend[i], (i == bytes_written - 1) ? "\n" : "");
-      }
+  if (bytes_written > 0) {
+    printf("Sent %d bytes:\n", bytes_written);  // debug
+    for (int i = 0; i < bytes_written; i++) {
+      printf("%c%s", dataToSend[i], (i == bytes_written - 1) ? "\n" : "");
     }
-    else {
-      return 1;
+  } else {
+    return 1;
+  }
+  int bytes_read = receiveData(*fd, buffer, sizeof(buffer));
+  if (bytes_read > 0) {
+    printf("Received %d bytes:\n", bytes_read);  // debug:
+    for (int i = 0; i < bytes_read; i++) {
+      printf("%c%s", buffer[i], (i == bytes_read - 1) ? "\n" : "");
     }
-    int bytes_read = receiveData(*fd, buffer, sizeof(buffer));
-    if (bytes_read > 0) {
-      printf("Received %d bytes:\n", bytes_read); //debug:
-      for (int i = 0; i < bytes_read; i++) {
-        printf("%c%s", buffer[i], (i == bytes_read - 1) ? "\n" : "");
-      }
-    }
-    else {
-      return 1;
-    }
-    return 0;
+  } else {
+    return 1;
+  }
+  return 0;
 }
