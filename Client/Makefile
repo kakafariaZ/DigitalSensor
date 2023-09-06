@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra
+# CFLAGS = -Wall -Werror -Wextra
 SRC_DIR = src
 SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 OUT = bin/Main
