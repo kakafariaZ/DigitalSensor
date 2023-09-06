@@ -1,6 +1,7 @@
 module ResponseHandler (
     input wire clock,
     input wire has_response,
+    input wire [7:0] request_code,
     input wire [7:0] data_to_send,
     output reg response_ready,
     output reg [7:0] response
@@ -14,7 +15,7 @@ module ResponseHandler (
     if (has_response == 1'b1) begin
       case (current_state)
         TYPE: begin
-          case (data_to_send)
+          case (request_code)
             8'h00:   response <= 8'h00; // WARN: Request sensor current state...
             8'h01:   response <= 8'h12;
             8'h02:   response <= 8'h13;
@@ -30,7 +31,7 @@ module ResponseHandler (
           response_ready <= 1'b1;
         end
         DATA: begin
-          current_state <= SELECT;
+          current_state <= TYPE;
           response_ready <= 1'b1;
           response <= data_to_send;
         end
