@@ -1,3 +1,11 @@
+/**
+* This module implements a decoder for handling the data received from the `SensorDecoder` module.
+* It receives the two bytes representing, respectively, the request code and the information decode
+* by the `SensorDecoder`.
+*
+* It sends the corresponding response code and the decoded information back to the 'Client', by
+* handing it to the `UART_TX` module.
+*/
 module ResponseHandler (
     input wire clock,
     input wire has_response,
@@ -16,7 +24,7 @@ module ResponseHandler (
       case (current_state)
         TYPE: begin
           case (request_code)
-            8'h00:   response <= 8'h00; // WARN: Request sensor current state...
+            8'h00:   response <= 8'h00;  // WARN: Request sensor current state...
             8'h01:   response <= 8'h12;
             8'h02:   response <= 8'h13;
             8'h03:   response <= 8'h14;
@@ -27,7 +35,7 @@ module ResponseHandler (
             8'h08:   response <= 8'h19;
             default: response <= 8'b00000000;
           endcase
-          current_state <= DATA;
+          current_state  <= DATA;
           response_ready <= 1'b1;
         end
         DATA: begin

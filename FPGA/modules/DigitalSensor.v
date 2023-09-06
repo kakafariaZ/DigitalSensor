@@ -12,6 +12,9 @@
 *   - `SensorDecoder`: Act as a 'Facade' for the sub modules for the available sensors, decoding
 *   the other part of the data coming from the `RequestHandler` to return the proper information.
 *
+*   - `RequestHandler`: Handles the data decoded by the `SensorDecoder` module to properly send
+*   it back to the 'Client', by handing it to the `UART_TX` module.
+*
 *   - `UART_TX`: Sends the information produced by the other sub modules back to the 'Client' via
 *   the UART protocol.
 *
