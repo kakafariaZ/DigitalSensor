@@ -4,7 +4,7 @@
 # set -x
 
 CC=gcc                                         # Change this to the available compiler.
-CFLAGS="-Wall -Werror -Wextra"                 # Change this to the desired/needed compilation flags.
+# CFLAGS="-Wall -Werror -Wextra"                 # Change this to the desired/needed compilation flags.
 SRC_DIR=src                                    # Change this to proper source directory.
 SRC_FILES=$(find $SRC_DIR -type f -name '*.c') # Modify as needed to catch source files.
 OUTPUT=bin/Main                                # Change this to the desired output file.
