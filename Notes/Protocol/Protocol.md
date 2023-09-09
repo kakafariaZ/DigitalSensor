@@ -17,20 +17,55 @@
 | 0x06 |   Activate continuos monitoring of the humidity level    |
 | 0x07 | Deactivate continuos monitoring of the temperature level |
 | 0x08 |  Deactivate continuos monitoring of the humidity level   |
-| 0xCB |              Request to begin communication              |
-| 0xCD |               Request to end communication               |
 
 ###### Response commands
 
 | Code |                                    Description                                    |
 | :--: | :-------------------------------------------------------------------------------: |
-| 0x1F |                               Sensor with problems                                |
-| 0x09 |                              Sensor working normally                              |
-| 0x0A |                          Temperature level - Whole part                           |
-| 0x0B |                        Temperature level - Fractional part                        |
-| 0x0C |                            Humidity level - Whole part                            |
-| 0x0D |                         Humidity level - Fractional part                          |
-| 0x0E | Confirmation of the deactivation of continuos monitoring of the temperature level |
-| 0x0F |  Confirmation of the deactivation of continuos monitoring of the humidity level   |
-| 0xFB |                        Confirm beginning of communication                         |
-| 0xFD |                           Confirm end of communication                            |
+| 0x10 |                               Sensor with problems                                |
+| 0x11 |                              Sensor working normally                              |
+| 0x12 |                          Temperature level - Whole part                           |
+| 0x13 |                        Temperature level - Fractional part                        |
+| 0x14 |                            Humidity level - Whole part                            |
+| 0x15 |                         Humidity level - Fractional part                          |
+| 0x16 |  Confirmation of the activation of continuos monitoring of the temperature level  |
+| 0x17 |   Confirmation of the activation of continuos monitoring of the humidity level    |
+| 0x18 | Confirmation of the deactivation of continuos monitoring of the temperature level |
+| 0x19 |  Confirmation of the deactivation of continuos monitoring of the humidity level   |
+
+###### Available devices
+
+| Code |   Binary    |  Sensor   |
+| :--: | :---------: | :-------: |
+| 0x20 | 8'b00100000 |   DHT11   |
+| 0x21 | 8'b00100001 | Undefined |
+| 0x22 | 8'b00100010 | Undefined |
+| 0x23 | 8'b00100011 | Undefined |
+| 0x24 | 8'b00100100 | Undefined |
+| 0x25 | 8'b00100101 | Undefined |
+| 0x26 | 8'b00100110 | Undefined |
+| 0x27 | 8'b00100111 | Undefined |
+| 0x28 | 8'b00101000 | Undefined |
+| 0x29 | 8'b00101001 | Undefined |
+| 0x2A | 8'b00101010 | Undefined |
+| 0x2B | 8'b00101011 | Undefined |
+| 0x2C | 8'b00101100 | Undefined |
+| 0x2D | 8'b00101101 | Undefined |
+| 0x2E | 8'b00101110 | Undefined |
+| 0x2F | 8'b00101111 | Undefined |
+| 0x30 | 8'b00110000 | Undefined |
+| 0x31 | 8'b00110001 | Undefined |
+| 0x32 | 8'b00110010 | Undefined |
+| 0x33 | 8'b00110011 | Undefined |
+| 0x34 | 8'b00110100 | Undefined |
+| 0x35 | 8'b00110101 | Undefined |
+| 0x36 | 8'b00110110 | Undefined |
+| 0x37 | 8'b00110111 | Undefined |
+| 0x38 | 8'b00111000 | Undefined |
+| 0x39 | 8'b00111001 | Undefined |
+| 0x3A | 8'b00111010 | Undefined |
+| 0x3B | 8'b00111011 | Undefined |
+| 0x3C | 8'b00111100 | Undefined |
+| 0x3D | 8'b00111101 | Undefined |
+| 0x3E | 8'b00111110 | Undefined |
+| 0x3F | 8'b00111111 | Undefined |
