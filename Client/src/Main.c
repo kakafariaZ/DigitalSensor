@@ -4,13 +4,14 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "include/Codes.h"
 
 #define SERIAL_PORT "/dev/ttyS0"
 #define MAX_BUFFER_SIZE 255
 
-const int QNT_SENSOR = 1;
+int QNT_SENSOR = 1;
 // const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
 
 // Configure the settings for the communication with the serial port.
@@ -34,14 +35,20 @@ int chooseSensor();
 // TODO: What does this do...? - Gerson
 int handleTransmission(int *fd, char *dataToSend, char *buffer);
 
+// Handle with the continuos monitoring.
+void *continuosMonitoring(void *);
+
+
 int main(void) {
   int fileDescriptor;
   int request = 0;
   int choosedSensor;
   int transmition_error;
   int whole_part, fractional_part;
+  int thread_information[2];
   char availableSensors[] = {0x20};
   char dataToSend[2], buffer[2];  // see protocol.md file
+  pthread_t monitoring_thread;
 
   printf("Select on one of the following options:             \n");
   printf("  1 - Request current status of a device.           \n");
@@ -126,8 +133,55 @@ int main(void) {
       break;
 
     case 4:
-      break;
+	thread_information[1] = fileDescriptor;
+	thread_information[1] = 1;
+	dataToSend[0] = 0x05;
+	system("clear");
+	sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+	sleep(1);
+	// Create a thread for continuos monitoring
+	if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) != 0){
+		perror("pthread_create");
+		break;
+	}
+	
+	getchar();
+	
+	pthread_cancel(monitoring_thread);
+	pthread_join(monitoring_thread, NULL);
+	printf("Finishing...\n");
+	
+	dataToSend[0] = 0x07; 
+	sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+	sleep(1);
+	system("clear");
+
+        break;
     case 5:
+	thread_information[0] = fileDescriptor;
+	thread_information[1] = 0;
+	dataToSend[0] = 0x06;
+	system("clear");
+	sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+	sleep(1);
+	// Create a thread for continuos monitoring
+	if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) != 0){
+		perror("pthread_create");
+		break;
+	}
+	
+	getchar();
+	
+	pthread_cancel(monitoring_thread);
+	pthread_join(monitoring_thread, NULL);
+	printf("Finishing...\n");
+
+	dataToSend[0] = 0x08; 
+	sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+	sleep(1);
+	system("clear");
+
+        break;
       break;
     default:
 
@@ -216,12 +270,12 @@ int chooseSensor() {
     printf("> ");
     scanf("%d%*c", &choosedSensor);
     choosedSensor--;
-    if (choosedSensor < 0 || chooseSensor > QNT_SENSOR) {
+    if (choosedSensor < 0 || choosedSensor > QNT_SENSOR) {
       printf("Please choose one of the following sensors...\n");
       sleep(1);
       system("clear");
     }
-  } while (choosedSensor < 0 || chooseSensor > QNT_SENSOR);
+  } while (choosedSensor < 0 || choosedSensor > QNT_SENSOR);
   return choosedSensor;
 }
 
@@ -245,4 +299,35 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
     return 1;
   }
   return 0;
+}
+
+
+
+
+
+void *continuosMonitoring(void * arg){
+	int * information = (int *) arg; // information 1 -> fd, information 2 -> type
+	int whole_part;
+	int fractional_part;
+	char buffer[2];	
+	
+	while(1){
+
+		receiveData(information[0], buffer, sizeof(buffer));
+		whole_part = buffer[1];
+		receiveData(information[0], buffer, sizeof(buffer));
+		fractional_part = buffer[1];
+	
+		if (information[1]) { // 1 Stands for Temperature, 0 for Humidity
+			printf("Actual temperature...\n");
+		}
+		else { 
+			printf("Actual Humidity...\n");
+		}
+			
+		printf("   %d.%d\n", whole_part, fractional_part);
+		
+		sleep(1);
+	}
+	return NULL;
 }
