@@ -1,10 +1,10 @@
 #include <fcntl.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include "include/Codes.h"
 
@@ -35,9 +35,8 @@ int chooseSensor();
 // TODO: What does this do...? - Gerson
 int handleTransmission(int *fd, char *dataToSend, char *buffer);
 
-// Handle with the continuos monitoring.
-void *continuosMonitoring(void *);
-
+// Handles the continuous monitoring using a separate thread.
+void *continuosMonitoring(void *args);
 
 int main(void) {
   int fileDescriptor;
@@ -47,7 +46,7 @@ int main(void) {
   int whole_part, fractional_part;
   int thread_information[2];
   char availableSensors[] = {0x20};
-  char dataToSend[2], buffer[2];  // see protocol.md file
+  char dataToSend[2], buffer[2];  // See: PROTOCOL.md
   pthread_t monitoring_thread;
 
   printf("Select on one of the following options:             \n");
@@ -68,13 +67,13 @@ int main(void) {
   }
 
   system("clear");
-  if (request != 0) {           // if the user don't quit
+  if (request != 0) {           // If the user don't quit...
     openPort(&fileDescriptor);  // Opens the serial port
-    if (configureSerialPort(fileDescriptor))
-      return 1;  // quit the program if cant configure port
-
-    dataToSend[1] = chooseSensor();  // Second byte of the comunication is the
-                                     // sensor addres;
+    if (configureSerialPort(fileDescriptor)) {
+      return 1;  // Quit the program if cant configure port.
+    }
+    // Second byte of the communication is the sensor address.
+    dataToSend[1] = chooseSensor();
   }
 
   switch (request) {
@@ -83,7 +82,8 @@ int main(void) {
       break;
     case 1:
       dataToSend[0] = 0x00;
-      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
+      transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
@@ -95,15 +95,17 @@ int main(void) {
       break;
 
     case 2:
-      dataToSend[0] = 0x01;  // asking for the whole part from temperature
-      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
+      dataToSend[0] = 0x01;  // Asking for the whole part from temperature.
+      transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
       whole_part = (int)buffer[1];
-      dataToSend[0] = 0x02;  // asking for the fractional part from temperature
-      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
+      dataToSend[0] = 0x02;  // Asking for the fractional part from temperature.
+      transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
@@ -114,15 +116,17 @@ int main(void) {
       break;
 
     case 3:
-      dataToSend[0] = 0x03;  // asking for the whole part from humidity
-      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
+      dataToSend[0] = 0x03;  // Asking for the whole part from humidity.
+      transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
       whole_part = (int)buffer[1];
-      dataToSend[0] = 0x04;  // asking for the fractional part from humidity
-      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
+      dataToSend[0] = 0x04;  // Asking for the fractional part from humidity.
+      transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
@@ -133,64 +137,62 @@ int main(void) {
       break;
 
     case 4:
-	thread_information[1] = fileDescriptor;
-	thread_information[1] = 1;
-	dataToSend[0] = 0x05;
-	system("clear");
-	sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
-	sleep(1);
-	// Create a thread for continuos monitoring
-	if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) != 0){
-		perror("pthread_create");
-		break;
-	}
-	
-	getchar();
-	
-	pthread_cancel(monitoring_thread);
-	pthread_join(monitoring_thread, NULL);
-	printf("Finishing...\n");
-	
-	dataToSend[0] = 0x07; 
-	sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
-	sleep(1);
-	system("clear");
-
+      thread_information[1] = fileDescriptor;
+      thread_information[1] = 1;
+      dataToSend[0] = 0x05;
+      system("clear");
+      sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+      sleep(1);
+      // Create a thread for continuous monitoring.
+      if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
+                         thread_information) != 0) {
+        perror("pthread_create");
         break;
+      }
+
+      getchar();
+
+      pthread_cancel(monitoring_thread);
+      pthread_join(monitoring_thread, NULL);
+      printf("Finishing...\n");
+
+      dataToSend[0] = 0x07;
+      sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+      sleep(1);
+      system("clear");
+
+      break;
     case 5:
-	thread_information[0] = fileDescriptor;
-	thread_information[1] = 0;
-	dataToSend[0] = 0x06;
-	system("clear");
-	sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
-	sleep(1);
-	// Create a thread for continuos monitoring
-	if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) != 0){
-		perror("pthread_create");
-		break;
-	}
-	
-	getchar();
-	
-	pthread_cancel(monitoring_thread);
-	pthread_join(monitoring_thread, NULL);
-	printf("Finishing...\n");
-
-	dataToSend[0] = 0x08; 
-	sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
-	sleep(1);
-	system("clear");
-
+      thread_information[0] = fileDescriptor;
+      thread_information[1] = 0;
+      dataToSend[0] = 0x06;
+      system("clear");
+      sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+      sleep(1);
+      // Create a thread for continuous monitoring.
+      if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
+                         thread_information) != 0) {
+        perror("pthread_create");
         break;
+      }
+
+      getchar();
+
+      pthread_cancel(monitoring_thread);
+      pthread_join(monitoring_thread, NULL);
+      printf("Finishing...\n");
+
+      dataToSend[0] = 0x08;
+      sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+      sleep(1);
+      system("clear");
+
       break;
     default:
-
       break;
   }
 
-  /* openPort(&fileDescriptor); */
-
-  /* close(fileDescriptor); */
+  close(fileDescriptor);
 
   return 0;
 }
@@ -301,33 +303,27 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
   return 0;
 }
 
+void *continuosMonitoring(void *arg) {
+  int *information = (int *)arg;  // information 1 -> fd, information 2 -> type
+  int whole_part;
+  int fractional_part;
+  char buffer[2];
 
+  while (1) {
+    receiveData(information[0], buffer, sizeof(buffer));
+    whole_part = buffer[1];
+    receiveData(information[0], buffer, sizeof(buffer));
+    fractional_part = buffer[1];
 
+    if (information[1]) {  // 1 Stands for Temperature, 0 for Humidity
+      printf("Actual temperature...\n");
+    } else {
+      printf("Actual Humidity...\n");
+    }
 
+    printf("   %d.%d\n", whole_part, fractional_part);
 
-void *continuosMonitoring(void * arg){
-	int * information = (int *) arg; // information 1 -> fd, information 2 -> type
-	int whole_part;
-	int fractional_part;
-	char buffer[2];	
-	
-	while(1){
-
-		receiveData(information[0], buffer, sizeof(buffer));
-		whole_part = buffer[1];
-		receiveData(information[0], buffer, sizeof(buffer));
-		fractional_part = buffer[1];
-	
-		if (information[1]) { // 1 Stands for Temperature, 0 for Humidity
-			printf("Actual temperature...\n");
-		}
-		else { 
-			printf("Actual Humidity...\n");
-		}
-			
-		printf("   %d.%d\n", whole_part, fractional_part);
-		
-		sleep(1);
-	}
-	return NULL;
+    sleep(1);
+  }
+  return NULL;
 }
