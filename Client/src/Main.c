@@ -142,7 +142,7 @@ int main(void) {
       thread_information[1] = 1;
       dataToSend[0] = REQ_ACT_MNTR_TEMP;
       system("clear");
-      sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+      sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
       sleep(1);
       // Create a thread for continuous monitoring.
       if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
@@ -158,7 +158,7 @@ int main(void) {
       printf("Finishing...\n");
 
       dataToSend[0] = REQ_DEACT_MNTR_TEMP;
-      sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+      sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
       sleep(1);
       system("clear");
 
@@ -168,7 +168,7 @@ int main(void) {
       thread_information[1] = 0;
       dataToSend[0] = REQ_ACT_MNTR_HUM;
       system("clear");
-      sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+      sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
       sleep(1);
       // Create a thread for continuous monitoring.
       if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
@@ -184,7 +184,7 @@ int main(void) {
       printf("Finishing...\n");
 
       dataToSend[0] = REQ_DEACT_MNTR_HUM;
-      sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
+      sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
       sleep(1);
       system("clear");
 
@@ -311,9 +311,9 @@ void *continuosMonitoring(void *arg) {
   char buffer[2];
 
   while (1) {
-    receiveData(information[0], buffer, sizeof(buffer));
+    receiveData(information[0], buffer, PACKAGE_SIZE);
     whole_part = buffer[1];
-    receiveData(information[0], buffer, sizeof(buffer));
+    receiveData(information[0], buffer, PACKAGE_SIZE);
     fractional_part = buffer[1];
 
     if (information[1]) {  // 1 Stands for Temperature, 0 for Humidity
