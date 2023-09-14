@@ -82,21 +82,21 @@ int main(void) {
       printf("Finishing...\n");
       break;
     case 1:
-      dataToSend[0] = 0x00;
+      dataToSend[0] = REQ_STATUS;
       transmition_error =
           handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
         printf("An error occourred!\n");
         return 1;
       }
-      if (buffer[1] == 0x10)
+      if (buffer[1] == REP_STATUS_ERROR)
         printf("Sensor with problem!\n");
       else
         printf("Sensor working normally!\n");
       break;
 
     case 2:
-      dataToSend[0] = 0x01;  // Asking for the whole part from temperature.
+      dataToSend[0] = REQ_TEMP_INT;
       transmition_error =
           handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
@@ -104,7 +104,7 @@ int main(void) {
         return 1;
       }
       whole_part = (int)buffer[1];
-      dataToSend[0] = 0x02;  // Asking for the fractional part from temperature.
+      dataToSend[0] = REQ_TEMP_FLOAT;
       transmition_error =
           handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
@@ -117,7 +117,7 @@ int main(void) {
       break;
 
     case 3:
-      dataToSend[0] = 0x03;  // Asking for the whole part from humidity.
+      dataToSend[0] = REQ_HUM_INT;
       transmition_error =
           handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
@@ -125,7 +125,7 @@ int main(void) {
         return 1;
       }
       whole_part = (int)buffer[1];
-      dataToSend[0] = 0x04;  // Asking for the fractional part from humidity.
+      dataToSend[0] = REQ_HUM_FLOAT;
       transmition_error =
           handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
@@ -140,7 +140,7 @@ int main(void) {
     case 4:
       thread_information[1] = fileDescriptor;
       thread_information[1] = 1;
-      dataToSend[0] = 0x05;
+      dataToSend[0] = REQ_ACT_MNTR_TEMP;
       system("clear");
       sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
       sleep(1);
@@ -157,7 +157,7 @@ int main(void) {
       pthread_join(monitoring_thread, NULL);
       printf("Finishing...\n");
 
-      dataToSend[0] = 0x07;
+      dataToSend[0] = REQ_DEACT_MNTR_TEMP;
       sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
       sleep(1);
       system("clear");
@@ -166,7 +166,7 @@ int main(void) {
     case 5:
       thread_information[0] = fileDescriptor;
       thread_information[1] = 0;
-      dataToSend[0] = 0x06;
+      dataToSend[0] = REQ_ACT_MNTR_HUM;
       system("clear");
       sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
       sleep(1);
@@ -183,7 +183,7 @@ int main(void) {
       pthread_join(monitoring_thread, NULL);
       printf("Finishing...\n");
 
-      dataToSend[0] = 0x08;
+      dataToSend[0] = REQ_DEACT_MNTR_HUM;
       sendData(fileDescriptor, dataToSend, sizeof(dataToSend));
       sleep(1);
       system("clear");

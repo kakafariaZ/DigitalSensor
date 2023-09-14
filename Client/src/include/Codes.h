@@ -12,8 +12,8 @@
 #define REQ_DEACT_MNTR_TEMP  0x07
 #define REQ_DEACT_MNTR_HUM   0x08
 
-#define REP_STATUS_OK        0x10
-#define REP_STATUS_ERROR     0x11
+#define REP_STATUS_ERROR     0x10
+#define REP_STATUS_OK        0x11
 #define REP_TEMP_INT         0x12
 #define REP_TEMP_FLOAT       0x13
 #define REP_HUM_INT          0x14
