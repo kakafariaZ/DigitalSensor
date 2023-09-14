@@ -74,7 +74,7 @@ int main(void) {
       return 1;  // Quit the program if cant configure port.
     }
     // Second byte of the communication is the sensor address.
-    dataToSend[1] = chooseSensor();
+    dataToSend[1] = availableSensors[chooseSensor()];
   }
 
   switch (request) {
