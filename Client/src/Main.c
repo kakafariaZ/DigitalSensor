@@ -10,6 +10,7 @@
 
 #define SERIAL_PORT "/dev/ttyS0"
 #define MAX_BUFFER_SIZE 255
+#define PACKAGE_SIZE 2
 
 int QNT_SENSOR = 1;
 // const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
@@ -32,7 +33,7 @@ void *continuosMode(void *arg);
 // Selects a sensor address.
 int chooseSensor();
 
-// TODO: What does this do...? - Gerson
+// Handles the transmission (Client -> FPGA & FPGA -> Client).
 int handleTransmission(int *fd, char *dataToSend, char *buffer);
 
 // Handles the continuous monitoring using a separate thread.
@@ -282,20 +283,20 @@ int chooseSensor() {
 }
 
 int handleTransmission(int *fd, char *dataToSend, char *buffer) {
-  int bytes_written = sendData(*fd, dataToSend, sizeof(dataToSend));
+  int bytes_written = sendData(*fd, dataToSend, PACKAGE_SIZE);
   if (bytes_written > 0) {
     printf("Sent %d bytes:\n", bytes_written);  // debug
     for (int i = 0; i < bytes_written; i++) {
-      printf("%c%s", dataToSend[i], (i == bytes_written - 1) ? "\n" : "");
+      printf("%c%s", dataToSend[i], (i == bytes_written - 1) ? "\n" : "-");
     }
   } else {
     return 1;
   }
-  int bytes_read = receiveData(*fd, buffer, sizeof(buffer));
+  int bytes_read = receiveData(*fd, buffer, PACKAGE_SIZE);
   if (bytes_read > 0) {
     printf("Received %d bytes:\n", bytes_read);  // debug:
     for (int i = 0; i < bytes_read; i++) {
-      printf("%c%s", buffer[i], (i == bytes_read - 1) ? "\n" : "");
+      printf("%c%s", buffer[i], (i == bytes_read - 1) ? "\n" : "-");
     }
   } else {
     return 1;
