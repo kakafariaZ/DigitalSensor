@@ -104,8 +104,10 @@ int main(void) {
         }
         if (buffer[1] == REP_STATUS_OK)
           printf("Sensor working normally!\n");
-        else
+        else if (buffer[1] == REP_STATUS_ERROR)
           printf("Sensor with problem!\n");
+        else
+          printf("Communication Error!\n");
         break;
 
       case 2:
@@ -116,6 +118,12 @@ int main(void) {
           printf("An error occourred!\n");
           return 1;
         }
+        
+        if (buffer[0] != REP_TEMP_INT){
+          printf("Communication Error!\n");
+          break;
+        }
+
         whole_part = (int)buffer[1];
         dataToSend[0] = REQ_TEMP_FLOAT;
         transmition_error =
@@ -124,6 +132,12 @@ int main(void) {
           printf("An error occourred!\n");
           return 1;
         }
+
+        if (buffer[0] != REP_TEMP_FLOAT){
+          printf("Communication Error!\n");
+          break;
+        }
+
         fractional_part = (int)buffer[1];
         printf("Temperature of Sensor %d: \n", choosedSensor);
         printf("   %d.%d\n", whole_part, fractional_part);
@@ -137,14 +151,27 @@ int main(void) {
           printf("An error occourred!\n");
           return 1;
         }
+
+        if (buffer[0] != REP_HUM_INT){
+          printf("Communication Error!\n");
+          break;
+        }
+
         whole_part = (int)buffer[1];
         dataToSend[0] = REQ_HUM_FLOAT;
         transmition_error =
           handleTransmission(&fileDescriptor, dataToSend, buffer);
+        
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
         }
+
+        if (buffer[0] != REP_HUM_FLOAT){
+          printf("Communication Error!\n");
+          break;
+        }
+
         fractional_part = (int)buffer[1];
         printf("Humidity of Sensor %d: \n", choosedSensor);
         printf("   %d.%d\n", whole_part, fractional_part);
@@ -313,10 +340,22 @@ void *continuosMonitoring(void *arg) {
   while (1) {
     system("clear");
     receiveData(information[0], buffer, PACKAGE_SIZE);
-    whole_part = buffer[1];
+    
+    if (buffer[0] !=REP_ACT_MNTR_TEMP && buffer[0] != REP_ACT_MNTR_HUM){
+      printf("Communication Error!\n");
+      continue;
+    }
+
+    whole_part = (int)buffer[1];
     sleep(1);
     receiveData(information[0], buffer, PACKAGE_SIZE);
-    fractional_part = buffer[1];
+
+    if (buffer[0] !=REP_ACT_MNTR_TEMP && buffer[0] != REP_ACT_MNTR_HUM){
+      printf("Communication Error!\n");
+      continue;
+    }
+
+    fractional_part = (int)buffer[1];
 
     if (information[1]) {  // 1 Stands for Temperature, 0 for Humidity
       printf("Actual temperature...\n");
