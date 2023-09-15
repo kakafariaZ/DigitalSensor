@@ -62,6 +62,7 @@ int main(void) {
   pthread_t monitoring_thread;
 
   do {
+    system("clear");
     printf("Select on one of the following options:             \n");
     printf("  1 - Request current status of a device.           \n");
     printf("  2 - Request temperature level.                    \n");
@@ -101,10 +102,10 @@ int main(void) {
           printf("An error occourred!\n");
           return 1;
         }
-        if (buffer[1] == REP_STATUS_ERROR)
-          printf("Sensor with problem!\n");
-        else
+        if (buffer[1] == REP_STATUS_OK)
           printf("Sensor working normally!\n");
+        else
+          printf("Sensor with problem!\n");
         break;
 
       case 2:
@@ -304,14 +305,16 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
 }
 
 void *continuosMonitoring(void *arg) {
-  int *information = (int *)arg;  // information 1 -> fd, information 2 -> type
+  int *information = (int *)arg;  // information 0 -> fd, information 1 -> type
   int whole_part;
   int fractional_part;
   char buffer[2];
 
   while (1) {
+    system("clear");
     receiveData(information[0], buffer, PACKAGE_SIZE);
     whole_part = buffer[1];
+    sleep(1);
     receiveData(information[0], buffer, PACKAGE_SIZE);
     fractional_part = buffer[1];
 
