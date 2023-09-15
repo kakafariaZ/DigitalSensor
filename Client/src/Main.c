@@ -12,6 +12,17 @@
 #define MAX_BUFFER_SIZE 255
 #define PACKAGE_SIZE 2
 
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+  ((byte) & 0x80 ? '1' : '0'), \
+  ((byte) & 0x40 ? '1' : '0'), \
+  ((byte) & 0x20 ? '1' : '0'), \
+  ((byte) & 0x10 ? '1' : '0'), \
+  ((byte) & 0x08 ? '1' : '0'), \
+  ((byte) & 0x04 ? '1' : '0'), \
+  ((byte) & 0x02 ? '1' : '0'), \
+  ((byte) & 0x01 ? '1' : '0') 
+
 int QNT_SENSOR = 1;
 // const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
 
@@ -287,7 +298,8 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
   if (bytes_written > 0) {
     printf("Sent %d bytes:\n", bytes_written);  // debug
     for (int i = 0; i < bytes_written; i++) {
-      printf("%c%s", dataToSend[i], (i == bytes_written - 1) ? "\n" : "-");
+      printf(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
+      printf("%s", (i == bytes_written - 1) ? "\n" : "-");
     }
   } else {
     return 1;
@@ -296,7 +308,8 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
   if (bytes_read > 0) {
     printf("Received %d bytes:\n", bytes_read);  // debug:
     for (int i = 0; i < bytes_read; i++) {
-      printf("%c%s", buffer[i], (i == bytes_read - 1) ? "\n" : "-");
+      printf(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
+      printf("%s", (i == bytes_written - 1) ? "\n" : "-");
     }
   } else {
     return 1;
