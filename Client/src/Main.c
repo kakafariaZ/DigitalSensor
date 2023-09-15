@@ -149,59 +149,43 @@ int main(void) {
         printf("   %d.%d\n", whole_part, fractional_part);
         break;
 
-      case 4:
-        thread_information[0] = fileDescriptor;
-        thread_information[1] = 1;
-        dataToSend[0] = REQ_ACT_MNTR_TEMP;
-        system("clear");
-        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(1);
-        // Create a thread for continuous monitoring.
-        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
-              thread_information) != 0) {
-          perror("pthread_create");
-          break;
-        }
-
-        getchar();
-
-        pthread_cancel(monitoring_thread);
-        pthread_join(monitoring_thread, NULL);
-        printf("Finishing...\n");
-
-        dataToSend[0] = REQ_DEACT_MNTR_TEMP;
-        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(1);
-        system("clear");
-
-        break;
-      case 5:
-        thread_information[0] = fileDescriptor;
-        thread_information[1] = 0;
-        dataToSend[0] = REQ_ACT_MNTR_HUM;
-        system("clear");
-        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(1);
-        // Create a thread for continuous monitoring.
-        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
-              thread_information) != 0) {
-          perror("pthread_create");
-          break;
-        }
-
-        getchar();
-
-        pthread_cancel(monitoring_thread);
-        pthread_join(monitoring_thread, NULL);
-        printf("Finishing...\n");
-
-        dataToSend[0] = REQ_DEACT_MNTR_HUM;
-        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(1);
-        system("clear");
-
-        break;
       default:
+        thread_information[0] = fileDescriptor;
+        if (request == 4){
+          dataToSend[0] = REQ_ACT_MNTR_TEMP;
+          thread_information[1] = 1;
+        }
+        else{
+          dataToSend[0] = REQ_ACT_MNTR_HUM;
+          thread_information[1] = 0;
+        }
+
+        system("clear");
+        // asking for continuous monitoring.
+        sendData(fileDescriptor ,dataToSend ,PACKAGE_SIZE);
+        sleep(1);
+      
+        // Create a thread for continuous monitoring.
+        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) != 0) {
+          perror("pthread_create");
+          break;
+        }
+
+        getchar(); // Waits for user's input to close the thread
+        
+        pthread_cancel(monitoring_thread);
+        pthread_join(monitoring_thread, NULL);
+        printf("Finishing continuous monitoring");
+
+        if (request == 4)
+          dataToSend[0] = REQ_DEACT_MNTR_TEMP;
+        else 
+          dataToSend[0] = REQ_DEACT_MNTR_HUM;
+
+        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
+        sleep(1);
+        system("clear");
+
         break;
     }
   }
