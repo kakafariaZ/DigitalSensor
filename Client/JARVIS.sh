@@ -5,7 +5,7 @@
 
 CC=gcc                                         # Change this to the available compiler.
 # CFLAGS="-Wall -Werror -Wextra"                 # Change this to the desired/needed compilation flags.
-LIBS="-lpthread"                               # Change this to the desired/needed libraries.
+LIBS="-pthread"                                # Change this to the desired/needed libraries.
 SRC_DIR=src                                    # Change this to proper source directory.
 SRC_FILES=$(find $SRC_DIR -type f -name '*.c') # Modify as needed to catch source files.
 OUTPUT=bin/Main                                # Change this to the desired output file.
