@@ -149,7 +149,7 @@ int main(void) {
       break;
 
     case 4:
-      thread_information[1] = fileDescriptor;
+      thread_information[0] = fileDescriptor;
       thread_information[1] = 1;
       dataToSend[0] = REQ_ACT_MNTR_TEMP;
       system("clear");
