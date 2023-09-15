@@ -61,149 +61,151 @@ int main(void) {
   char dataToSend[2], buffer[2];  // See: PROTOCOL.md
   pthread_t monitoring_thread;
 
-  printf("Select on one of the following options:             \n");
-  printf("  1 - Request current status of a device.           \n");
-  printf("  2 - Request temperature level.                    \n");
-  printf("  3 - Request humidity level.                       \n");
-  printf("  4 - Activate continuos monitoring - Temperature.  \n");
-  printf("  5 - Activate continuos monitoring - humidity.     \n");
-  printf("  0 - Quit.                                         \n");
-  printf("> ");
-
-  scanf("%d%*c", &request);
-
-  while (request < 0 || request > 5) {
-    printf("Invalid option! Please select from the ones listed above...\n");
+  do {
+    printf("Select on one of the following options:             \n");
+    printf("  1 - Request current status of a device.           \n");
+    printf("  2 - Request temperature level.                    \n");
+    printf("  3 - Request humidity level.                       \n");
+    printf("  4 - Activate continuos monitoring - Temperature.  \n");
+    printf("  5 - Activate continuos monitoring - humidity.     \n");
+    printf("  0 - Quit.                                         \n");
     printf("> ");
+
     scanf("%d%*c", &request);
-  }
 
-  system("clear");
-  if (request != 0) {           // If the user don't quit...
-    openPort(&fileDescriptor);  // Opens the serial port
-    if (configureSerialPort(fileDescriptor)) {
-      return 1;  // Quit the program if cant configure port.
+    while (request < 0 || request > 5) {
+      printf("Invalid option! Please select from the ones listed above...\n");
+      printf("> ");
+      scanf("%d%*c", &request);
     }
-    // Second byte of the communication is the sensor address.
-    dataToSend[1] = availableSensors[chooseSensor()];
-  }
 
-  switch (request) {
-    case 0:
-      printf("Finishing...\n");
-      break;
-    case 1:
-      dataToSend[0] = REQ_STATUS;
-      transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error) {
-        printf("An error occourred!\n");
-        return 1;
+    system("clear");
+    if (request != 0) {           // If the user don't quit...
+      openPort(&fileDescriptor);  // Opens the serial port
+      if (configureSerialPort(fileDescriptor)) {
+        return 1;  // Quit the program if cant configure port.
       }
-      if (buffer[1] == REP_STATUS_ERROR)
-        printf("Sensor with problem!\n");
-      else
-        printf("Sensor working normally!\n");
-      break;
+      // Second byte of the communication is the sensor address.
+      dataToSend[1] = availableSensors[chooseSensor()];
+    }
 
-    case 2:
-      dataToSend[0] = REQ_TEMP_INT;
-      transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error) {
-        printf("An error occourred!\n");
-        return 1;
-      }
-      whole_part = (int)buffer[1];
-      dataToSend[0] = REQ_TEMP_FLOAT;
-      transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error) {
-        printf("An error occourred!\n");
-        return 1;
-      }
-      fractional_part = (int)buffer[1];
-      printf("Temperature of Sensor %d: \n", choosedSensor);
-      printf("   %d.%d\n", whole_part, fractional_part);
-      break;
-
-    case 3:
-      dataToSend[0] = REQ_HUM_INT;
-      transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error) {
-        printf("An error occourred!\n");
-        return 1;
-      }
-      whole_part = (int)buffer[1];
-      dataToSend[0] = REQ_HUM_FLOAT;
-      transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
-      if (transmition_error) {
-        printf("An error occourred!\n");
-        return 1;
-      }
-      fractional_part = (int)buffer[1];
-      printf("Humidity of Sensor %d: \n", choosedSensor);
-      printf("   %d.%d\n", whole_part, fractional_part);
-      break;
-
-    case 4:
-      thread_information[0] = fileDescriptor;
-      thread_information[1] = 1;
-      dataToSend[0] = REQ_ACT_MNTR_TEMP;
-      system("clear");
-      sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-      sleep(1);
-      // Create a thread for continuous monitoring.
-      if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
-                         thread_information) != 0) {
-        perror("pthread_create");
+    switch (request) {
+      case 0:
+        printf("Finishing...\n");
         break;
-      }
-
-      getchar();
-
-      pthread_cancel(monitoring_thread);
-      pthread_join(monitoring_thread, NULL);
-      printf("Finishing...\n");
-
-      dataToSend[0] = REQ_DEACT_MNTR_TEMP;
-      sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-      sleep(1);
-      system("clear");
-
-      break;
-    case 5:
-      thread_information[0] = fileDescriptor;
-      thread_information[1] = 0;
-      dataToSend[0] = REQ_ACT_MNTR_HUM;
-      system("clear");
-      sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-      sleep(1);
-      // Create a thread for continuous monitoring.
-      if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
-                         thread_information) != 0) {
-        perror("pthread_create");
+      case 1:
+        dataToSend[0] = REQ_STATUS;
+        transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
+        if (transmition_error) {
+          printf("An error occourred!\n");
+          return 1;
+        }
+        if (buffer[1] == REP_STATUS_ERROR)
+          printf("Sensor with problem!\n");
+        else
+          printf("Sensor working normally!\n");
         break;
-      }
 
-      getchar();
+      case 2:
+        dataToSend[0] = REQ_TEMP_INT;
+        transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
+        if (transmition_error) {
+          printf("An error occourred!\n");
+          return 1;
+        }
+        whole_part = (int)buffer[1];
+        dataToSend[0] = REQ_TEMP_FLOAT;
+        transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
+        if (transmition_error) {
+          printf("An error occourred!\n");
+          return 1;
+        }
+        fractional_part = (int)buffer[1];
+        printf("Temperature of Sensor %d: \n", choosedSensor);
+        printf("   %d.%d\n", whole_part, fractional_part);
+        break;
 
-      pthread_cancel(monitoring_thread);
-      pthread_join(monitoring_thread, NULL);
-      printf("Finishing...\n");
+      case 3:
+        dataToSend[0] = REQ_HUM_INT;
+        transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
+        if (transmition_error) {
+          printf("An error occourred!\n");
+          return 1;
+        }
+        whole_part = (int)buffer[1];
+        dataToSend[0] = REQ_HUM_FLOAT;
+        transmition_error =
+          handleTransmission(&fileDescriptor, dataToSend, buffer);
+        if (transmition_error) {
+          printf("An error occourred!\n");
+          return 1;
+        }
+        fractional_part = (int)buffer[1];
+        printf("Humidity of Sensor %d: \n", choosedSensor);
+        printf("   %d.%d\n", whole_part, fractional_part);
+        break;
 
-      dataToSend[0] = REQ_DEACT_MNTR_HUM;
-      sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-      sleep(1);
-      system("clear");
+      case 4:
+        thread_information[0] = fileDescriptor;
+        thread_information[1] = 1;
+        dataToSend[0] = REQ_ACT_MNTR_TEMP;
+        system("clear");
+        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
+        sleep(1);
+        // Create a thread for continuous monitoring.
+        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
+              thread_information) != 0) {
+          perror("pthread_create");
+          break;
+        }
 
-      break;
-    default:
-      break;
+        getchar();
+
+        pthread_cancel(monitoring_thread);
+        pthread_join(monitoring_thread, NULL);
+        printf("Finishing...\n");
+
+        dataToSend[0] = REQ_DEACT_MNTR_TEMP;
+        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
+        sleep(1);
+        system("clear");
+
+        break;
+      case 5:
+        thread_information[0] = fileDescriptor;
+        thread_information[1] = 0;
+        dataToSend[0] = REQ_ACT_MNTR_HUM;
+        system("clear");
+        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
+        sleep(1);
+        // Create a thread for continuous monitoring.
+        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
+              thread_information) != 0) {
+          perror("pthread_create");
+          break;
+        }
+
+        getchar();
+
+        pthread_cancel(monitoring_thread);
+        pthread_join(monitoring_thread, NULL);
+        printf("Finishing...\n");
+
+        dataToSend[0] = REQ_DEACT_MNTR_HUM;
+        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
+        sleep(1);
+        system("clear");
+
+        break;
+      default:
+        break;
+    }
   }
-
+  while (request != 0);
   close(fileDescriptor);
 
   return 0;
