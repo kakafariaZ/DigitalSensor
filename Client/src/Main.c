@@ -7,21 +7,11 @@
 #include <unistd.h>
 
 #include "include/Codes.h"
+#include "include/Utils.h"
 
 #define SERIAL_PORT "/dev/ttyS0"
 #define MAX_BUFFER_SIZE 255
 #define PACKAGE_SIZE 2
-
-#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
-#define BYTE_TO_BINARY(byte)  \
-  ((byte) & 0x80 ? '1' : '0'), \
-  ((byte) & 0x40 ? '1' : '0'), \
-  ((byte) & 0x20 ? '1' : '0'), \
-  ((byte) & 0x10 ? '1' : '0'), \
-  ((byte) & 0x08 ? '1' : '0'), \
-  ((byte) & 0x04 ? '1' : '0'), \
-  ((byte) & 0x02 ? '1' : '0'), \
-  ((byte) & 0x01 ? '1' : '0') 
 
 int QNT_SENSOR = 1;
 // const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
@@ -97,7 +87,7 @@ int main(void) {
       case 1:
         dataToSend[0] = REQ_STATUS;
         transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
+            handleTransmission(&fileDescriptor, dataToSend, buffer);
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
@@ -113,13 +103,13 @@ int main(void) {
       case 2:
         dataToSend[0] = REQ_TEMP_INT;
         transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
+            handleTransmission(&fileDescriptor, dataToSend, buffer);
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
         }
-        
-        if (buffer[0] != REP_TEMP_INT){
+
+        if (buffer[0] != REP_TEMP_INT) {
           printf("Communication Error!\n");
           break;
         }
@@ -127,13 +117,13 @@ int main(void) {
         whole_part = (int)buffer[1];
         dataToSend[0] = REQ_TEMP_FLOAT;
         transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
+            handleTransmission(&fileDescriptor, dataToSend, buffer);
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
         }
 
-        if (buffer[0] != REP_TEMP_FLOAT){
+        if (buffer[0] != REP_TEMP_FLOAT) {
           printf("Communication Error!\n");
           break;
         }
@@ -146,13 +136,13 @@ int main(void) {
       case 3:
         dataToSend[0] = REQ_HUM_INT;
         transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
+            handleTransmission(&fileDescriptor, dataToSend, buffer);
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
         }
 
-        if (buffer[0] != REP_HUM_INT){
+        if (buffer[0] != REP_HUM_INT) {
           printf("Communication Error!\n");
           break;
         }
@@ -160,14 +150,14 @@ int main(void) {
         whole_part = (int)buffer[1];
         dataToSend[0] = REQ_HUM_FLOAT;
         transmition_error =
-          handleTransmission(&fileDescriptor, dataToSend, buffer);
-        
+            handleTransmission(&fileDescriptor, dataToSend, buffer);
+
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
         }
 
-        if (buffer[0] != REP_HUM_FLOAT){
+        if (buffer[0] != REP_HUM_FLOAT) {
           printf("Communication Error!\n");
           break;
         }
@@ -179,35 +169,35 @@ int main(void) {
 
       default:
         thread_information[0] = fileDescriptor;
-        if (request == 4){
+        if (request == 4) {
           dataToSend[0] = REQ_ACT_MNTR_TEMP;
           thread_information[1] = 1;
-        }
-        else{
+        } else {
           dataToSend[0] = REQ_ACT_MNTR_HUM;
           thread_information[1] = 0;
         }
 
         system("clear");
         // asking for continuous monitoring.
-        sendData(fileDescriptor ,dataToSend ,PACKAGE_SIZE);
+        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
         sleep(1);
-      
+
         // Create a thread for continuous monitoring.
-        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) != 0) {
+        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
+                           thread_information) != 0) {
           perror("pthread_create");
           break;
         }
 
-        getchar(); // Waits for user's input to close the thread
-        
+        getchar();  // Waits for user's input to close the thread
+
         pthread_cancel(monitoring_thread);
         pthread_join(monitoring_thread, NULL);
         printf("Finishing continuous monitoring");
 
         if (request == 4)
           dataToSend[0] = REQ_DEACT_MNTR_TEMP;
-        else 
+        else
           dataToSend[0] = REQ_DEACT_MNTR_HUM;
 
         sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
@@ -216,8 +206,7 @@ int main(void) {
 
         break;
     }
-  }
-  while (request != 0);
+  } while (request != 0);
   close(fileDescriptor);
 
   return 0;
@@ -312,8 +301,8 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
   if (bytes_written > 0) {
     printf("Sent %d bytes:\n", bytes_written);  // debug
     for (int i = 0; i < bytes_written; i++) {
-      printf(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
-      printf("%s", (i == bytes_written - 1) ? "\n" : "-");
+      printf(BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
+      printf("%s", (i == bytes_written - 1) ? "\n" : " - ");
     }
   } else {
     return 1;
@@ -322,8 +311,8 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
   if (bytes_read > 0) {
     printf("Received %d bytes:\n", bytes_read);  // debug:
     for (int i = 0; i < bytes_read; i++) {
-      printf(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
-      printf("%s", (i == bytes_written - 1) ? "\n" : "-");
+      printf(BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
+      printf("%s", (i == bytes_written - 1) ? "\n" : " - ");
     }
   } else {
     return 1;
@@ -340,8 +329,8 @@ void *continuosMonitoring(void *arg) {
   while (1) {
     system("clear");
     receiveData(information[0], buffer, PACKAGE_SIZE);
-    
-    if (buffer[0] !=REP_ACT_MNTR_TEMP && buffer[0] != REP_ACT_MNTR_HUM){
+
+    if (buffer[0] != REP_ACT_MNTR_TEMP && buffer[0] != REP_ACT_MNTR_HUM) {
       printf("Communication Error!\n");
       continue;
     }
@@ -350,7 +339,7 @@ void *continuosMonitoring(void *arg) {
     sleep(1);
     receiveData(information[0], buffer, PACKAGE_SIZE);
 
-    if (buffer[0] !=REP_ACT_MNTR_TEMP && buffer[0] != REP_ACT_MNTR_HUM){
+    if (buffer[0] != REP_ACT_MNTR_TEMP && buffer[0] != REP_ACT_MNTR_HUM) {
       printf("Communication Error!\n");
       continue;
     }
