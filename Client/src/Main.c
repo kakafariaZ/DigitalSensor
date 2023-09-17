@@ -70,7 +70,6 @@ int main(void) {
       scanf("%d%*c", &request);
     }
 
-    system("clear");
     if (request != 0) {           // If the user don't quit...
       openPort(&fileDescriptor);  // Opens the serial port
       if (configureSerialPort(fileDescriptor)) {
