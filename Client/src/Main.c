@@ -85,12 +85,13 @@ int main(void) {
         break;
       case 1:
         dataToSend[0] = REQ_STATUS;
-        transmition_error =
-            handleTransmission(&fileDescriptor, dataToSend, buffer);
+        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
+
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
         }
+
         if (buffer[1] == REP_STATUS_OK)
           printf("Sensor working normally!\n");
         else if (buffer[1] == REP_STATUS_ERROR)
@@ -98,11 +99,9 @@ int main(void) {
         else
           printf("Communication Error!\n");
         break;
-
       case 2:
         dataToSend[0] = REQ_TEMP_INT;
-        transmition_error =
-            handleTransmission(&fileDescriptor, dataToSend, buffer);
+        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
@@ -115,8 +114,7 @@ int main(void) {
 
         whole_part = (int)buffer[1];
         dataToSend[0] = REQ_TEMP_FLOAT;
-        transmition_error =
-            handleTransmission(&fileDescriptor, dataToSend, buffer);
+        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
@@ -131,11 +129,9 @@ int main(void) {
         printf("Temperature of Sensor %d: \n", choosedSensor);
         printf("   %d.%d\n", whole_part, fractional_part);
         break;
-
       case 3:
         dataToSend[0] = REQ_HUM_INT;
-        transmition_error =
-            handleTransmission(&fileDescriptor, dataToSend, buffer);
+        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
         if (transmition_error) {
           printf("An error occourred!\n");
           return 1;
@@ -148,8 +144,7 @@ int main(void) {
 
         whole_part = (int)buffer[1];
         dataToSend[0] = REQ_HUM_FLOAT;
-        transmition_error =
-            handleTransmission(&fileDescriptor, dataToSend, buffer);
+        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
 
         if (transmition_error) {
           printf("An error occourred!\n");
@@ -165,7 +160,6 @@ int main(void) {
         printf("Humidity of Sensor %d: \n", choosedSensor);
         printf("   %d.%d\n", whole_part, fractional_part);
         break;
-
       default:
         thread_information[0] = fileDescriptor;
         if (request == 4) {
@@ -182,8 +176,8 @@ int main(void) {
         sleep(1);
 
         // Create a thread for continuous monitoring.
-        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring,
-                           thread_information) != 0) {
+        if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) !=
+            0) {
           perror("pthread_create");
           break;
         }
@@ -206,6 +200,7 @@ int main(void) {
         break;
     }
   } while (request != 0);
+
   close(fileDescriptor);
 
   return 0;
