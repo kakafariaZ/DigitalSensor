@@ -2,327 +2,247 @@
 * This module implements a decoder for handling communication with the DHT11 sensor.
 *
 * Regarding the `counter` use:
-*   * When using a clock 50Mhz every clock cycle takes 20ns, that is 2 x 10⁻⁵ ms. Supposing we need
+*   * When using a clock 1Mhz every clock cycle takes 1µs, that is 1 x 10⁻3 ms. Supposing we need
 *     to wait for 18ms, it would take:
-*       - 18 / 2 x 10⁻⁵ = 900,000 cycles
+*       - 18 / 1 x 10⁻³ = 900,000 cycles
 *   * To know how much time each `counter` is accounting for, just multiply the compared number by
-*   the clock period (2 x 10⁻⁵). The result is the time in milliseconds.
-*       - 900,000 * (2 x 10⁻⁵) = 18ms
+*   the clock period (1 x 10⁻³). The result is the time in milliseconds.
+*       - 900,000 * (1 x 10⁻³) = 18ms
 *
-* Source: https://youtu.be/BkTYD7kujTk?feature=shared
+* Source: https://www.kancloud.cn/dlover/fpga/1637659
 *
 * NOTE: Minor modifications were made to the original code to suit the targeted problem and for
 * better understanding of the working group.
 */
 
+
 module DHT11 (
-    input wire clock,
-    input wire enable,
-    input wire reset,
-    inout wire transmission_line,
-    output wire [7:0] hum_int,
-    output wire [7:0] hum_float,
-    output wire [7:0] temp_int,
-    output wire [7:0] temp_float,
-    output wire [7:0] checksum,
-    output reg hold,  // Signalizes that the communication is on going.
-    output reg debug,  // Can be pined to a oscilloscope input to visualize the data bits.
-    output reg error  // Signalizes that a problem has occurred on some step/state.
+    input  wire        clock,
+    input  wire        enable,
+    inout  wire        transmission_line,
+    output reg  [39:0] sensor_data,
+    output reg         error,
+    output reg         done
 );
 
-  reg [39:0] sensor_data;
-  reg [20:0] counter;
-  reg [ 5:0] index;
-  reg sensor_out, direction;
+  reg [39:0] raw_data;
+  reg [15:0] counter;
+  reg [ 5:0] received_bits;
+  reg [ 3:0] current_state;
+  reg bouncer_a, bouncer_b, enable_sensor;
+  reg direction, sensor_in;
 
-  wire sensor_in;
+  wire sensor_out;
+  wire divided_clock;
+
+  localparam  IDLE            = 0,
+              START_BIT       = 1,
+              SEND_HIGH_20US  = 2,
+              WAIT_LOW        = 3,
+              WAIT_HIGH       = 4,
+              END_SYNC        = 5,
+              WAIT_BIT        = 6,
+              READ_DATA       = 7,
+              COLECT_DATA     = 8,
+              FINISH          = 9;
 
   TriState TS0 (
       .port(transmission_line),
       .dir (direction),
-      .send(sensor_out),
-      .read(sensor_in)
+      .send(sensor_in),
+      .read(sensor_out)
   );
 
-  assign hum_int = sensor_data[7:0];
-  assign hum_float = sensor_data[15:8];
+  ClockDivider CD0 (
+      .clock(clock),
+      .divided_clock(divided_clock)
+  );
 
-  assign temp_int = sensor_data[23:16];
-  assign temp_float = sensor_data[31:24];
-
-  assign checksum = sensor_data[39:32];
-
-  localparam [3:0] S0 = 4'b0001, S1 = 4'b0010, S2 = 4'b0011,
-                   S3 = 4'b0100, S4 = 4'b0101, S5 = 4'b0110,
-                   S6 = 4'b0111, S7 = 4'b1000, S8 = 4'b1001,
-                   S9 = 4'b1010, START = 4'b1011, STOP = 4'b0000;
-
-  reg [3:0] current_state = STOP;
-
-  always @(posedge clock) begin : FSM
-    if (enable == 1'b1) begin
-      if (reset == 1'b1) begin
-        hold <= 1'b0;
-        error <= 1'b0;
-        direction <= 1'b1;
-        sensor_out <= 1'b1;
-        counter <= 21'b000000000000000000000000000;
-        sensor_data <= 40'b0000000000000000000000000000000000000000;
-        current_state <= START;
-      end else begin
-        case (current_state)
-          /**
-          * Initialize the state machine by updating the following signals:
-          *   - `sensor_out` to 1: Tells the DHT11 that the communication will start.
-          *   - `hold` to 1: Signalizes that the communication is starting.
-          *   - `direction` to 1: Allows the state machine to send signals to the sensor, see the
-          *     `TriState` module for more details.
-          *   - `current_state` to `S0`: Effectively starting the state machine.
-          */
-          START: begin
-            hold <= 1'b1;
-            direction <= 1'b1;
-            sensor_out <= 1'b1;
-            current_state <= S0;
-          end
-
-          /**
-          * On this state the signals: `hold`, `direction` and `sensor_out` are kept on high, as
-          * the communication is still on progress.
-          * The `counter` register will be incremented until it reaches 900,000 accounting for
-          * 18ms.
-          */
-          S0: begin
-            hold <= 1'b1;
-            error <= 1'b0;
-            direction <= 1'b1;
-            sensor_out <= 1'b1;
-
-            if (counter < 900_000) begin
-              counter <= counter + 1'b1;
-            end else begin
-              current_state <= S1;
-              counter <= 21'b000000000000000000000000000;
-            end
-          end
-
-          /**
-          * On this state the signals: `hold` and `direction` are kept on high, as the communication
-          * is still on progress. `sensor_out` is set to 0 to complete the signal of request to the
-          * DHT11.
-          * The `counter` register will be incremented until it reaches 900,000 accounting for
-          * 18ms.
-          */
-          S1: begin
-            hold <= 1'b1;
-            sensor_out <= 1'b0;
-
-            if (counter < 900_000) begin
-              counter <= counter + 1'b1;
-            end else begin
-              current_state <= S2;
-              counter <= 21'b000000000000000000000000000;
-            end
-          end
-
-
-          /**
-          * On this state we change `sensor_out` back to high level and wait for 20us (0.02ms),
-          * time needed for the DHT11 to respond to the request. Once we reach that limit, that
-          * `direction` signal is put on low, allowing the DHT11 to take over the `transmission_line`.
-          */
-          S2: begin
-            sensor_out <= 1'b1;
-
-            if (counter < 1_000) begin
-              counter <= counter + 1'b1;
-            end else begin
-              current_state <= S3;
-              direction <= 1'b0;
-            end
-          end
-
-          /**
-          * Here we wait for another 60us (0.06ms) waiting for the DHT11 to confirm the start of
-          * the communication.
-          * If the time is excedeed without any answer the `error` signal is set to high and the
-          * state machine go to the `STOP`.
-          */
-          S3: begin
-            if (sensor_in == 1'b1 && counter < 3_000) begin
-              current_state <= S3;
-              counter <= counter + 1'b1;
-            end else begin
-              if (sensor_in == 1'b1) begin
-                current_state <= STOP;
-                error <= 1'b1;
-                counter <= 21'b000000000000000000000000000;
-              end else begin
-                current_state <= S4;
-                counter <= 21'b000000000000000000000000000;
-              end
-            end
-          end
-
-          /**
-          * After the DHT11 confirm the start of the communication, we need to check for the
-          * synchronization signals. The DHT11 will send a low level signal for 88us (0.088ms) -
-          * verified on `S4` - followed by a high level signal for the same period - verified on
-          * `S5`.
-          */
-          S4: begin
-            if (sensor_in == 1'b0 && counter < 4_400) begin
-              current_state <= S4;
-              counter <= counter + 1'b1;
-            end else begin
-              if (sensor_in == 1'b0) begin
-                current_state <= STOP;
-                error <= 1'b1;
-                counter <= 21'b000000000000000000000000000;
-              end else begin
-                current_state <= S5;
-                counter <= 21'b000000000000000000000000000;
-              end
-            end
-          end
-
-          /**
-          * If the synchronization signals are both detected and valid, that `index` and `counter`
-          * registers will be reseted to allow the reception of the data from the sensor on the
-          * next states.
-          */
-          S5: begin
-            if (sensor_in == 1'b1 && counter < 4_400) begin
-              current_state <= S5;
-              counter <= counter + 1'b1;
-            end else begin
-              if (sensor_in == 1'b1) begin
-                current_state <= STOP;
-                error <= 1'b1;
-                counter <= 21'b000000000000000000000000000;
-              end else begin
-                current_state <= S6;
-                error <= 1'b0;
-                index <= 6'b000000;
-                counter <= 21'b000000000000000000000000000;
-              end
-            end
-          end
-
-          /**
-          * On this step, if the signal coming from the sensor isn't low, we have a problem on the
-          * communication, so the state machine is sent to the `STOP` state.
-          */
-          S6: begin
-            if (sensor_in == 1'b0) begin
-              current_state <= S7;
-            end else begin
-              current_state <= STOP;
-              error <= 1'b1;
-              counter <= 21'b000000000000000000000000000;
-            end
-          end
-
-          /**
-          * Here we check if the signal coming from the DHT11 is on a high level. If not, we wait
-          * for 32ms as the sensor might have hanged for some reason. When the time limit is
-          * reached the state machine is sent to the `STOP` state.
-          */
-          S7: begin
-            if (sensor_in == 1'b1) begin
-              current_state <= S8;
-              counter <= 21'b000000000000000000000000000;
-            end else begin
-              if (counter < 1_600_000) begin
-                current_state <= S7;
-                counter <= counter + 1'b1;
-              end else begin
-                current_state <= STOP;
-                error <= 1'b1;
-                counter <= 21'b000000000000000000000000000;
-              end
-            end
-          end
-
-          /**
-          * On this state we start receiving the data bits. The DHT11 will sent a low signal for
-          * 50us (0.05ms) followed by a high signal of variable length:
-          *   - A length of 26us to 28us (~0.02ms to 0.03ms) indicates a bit 0.
-          *   - A length of 70us (0.07ms) indicates a bit 1.
-          *
-          * The machine will be kept on this state until all the 40 bits are received.
-          */
-          S8: begin
-            if (sensor_in == 1'b0) begin
-              if (counter > 2_500) begin
-                debug <= 1'b1;
-                sensor_data[index] <= 1'b1;
-              end else begin
-                debug <= 1'b0;
-                sensor_data[index] <= 1'b0;
-              end
-
-              if (index < 39) begin
-                current_state <= S9;
-                counter <= 21'b000000000000000000000000000;
-              end else begin
-                current_state <= STOP;
-                error <= 1'b0;
-              end
-            end else begin
-              counter <= counter + 1'b1;
-
-              if (counter > 1_600_000) begin
-                current_state <= STOP;
-                error <= 1'b1;
-              end
-            end
-          end
-
-          /**
-          * This state is used to guarantee that the `index` is incremented and stabilized before
-          * we begin receiving another bit.
-          */
-          S9: begin
-            current_state <= S6;
-            index <= index + 1'b1;
-          end
-
-          /**
-          * Once we reach `STOP`, we check if again if there where no problems with the
-          * communication and perform the resets of the internal/external registers. If `error`
-          * is a high logical level, we wait for another 32ms for a proper reset of the state
-          * machine.
-          */
-          STOP: begin
-            current_state <= STOP;
-
-            if (error == 1'b0) begin
-              hold <= 1'b0;
-              error <= 1'b0;
-              direction <= 1'b1;
-              sensor_out <= 1'b1;
-              index <= 6'b000000;
-              counter <= 21'b000000000000000000000000000;
-            end else begin
-              if (counter < 1_600_000) begin
-                hold <= 1'b1;
-                error <= 1'b1;
-                direction <= 1'b0;
-                counter <= counter + 1'b1;
-                sensor_data <= 40'b0000000000000000000000000000000000000000;
-              end else begin
-                error <= 1'b0;
-              end
-            end
-          end
-
-          default: begin
-            current_state <= STOP;
-          end
-        endcase
-      end
+  /**
+  * This block is used to delay the signal of `enable` to ensure the
+  * value captured is valid and stable.
+  */
+  always @(posedge divided_clock, negedge enable) begin
+    if (enable == 1'b0) begin
+      bouncer_a <= 1'b0;
+      bouncer_b <= 1'b0;
+      enable_sensor <= 1'b0;
+    end else begin
+      bouncer_a <= enable;
+      bouncer_b <= bouncer_a;
+      enable_sensor <= bouncer_a & (~bouncer_b);
     end
   end
 
+  always @(posedge divided_clock, negedge enable) begin
+    if (enable == 1'b0) begin
+      direction <= 1'b1;
+      current_state <= IDLE;
+      sensor_in <= 1'b1;
+      raw_data <= 40'd0;
+      sensor_data <= 40'd0;
+      counter <= 16'd0;
+      received_bits <= 6'd0;
+      error <= 0;
+      done <= 1'b0;
+    end else begin
+      case (current_state)
+        IDLE: begin
+          if (enable_sensor == 1'b1 && sensor_out == 1'b1) begin
+            current_state <= START_BIT;
+            direction <= 1'b0;
+            sensor_in <= 1'b0;
+            counter <= 16'd0;
+            received_bits <= 6'd0;
+          end else begin
+            direction <= 1'b1;
+            sensor_in <= 1'b1;
+            counter   <= 16'd0;
+          end
+        end
+
+        START_BIT: begin
+          if (counter >= 16'd19000) begin
+            current_state <= SEND_HIGH_20US;
+            sensor_in <= 1'b1;
+            counter <= 16'd0;
+          end else begin
+            counter <= counter + 1'b1;
+          end
+        end
+
+        SEND_HIGH_20US: begin
+          if (counter >= 16'd20) begin
+            counter <= 16'd0;
+            direction <= 1'b1;
+            current_state <= WAIT_LOW;
+          end else begin
+            counter <= counter + 1'b1;
+          end
+        end
+
+        WAIT_LOW: begin
+          if (sensor_out == 1'b0) begin
+            current_state <= WAIT_HIGH;
+            counter <= 16'd0;
+          end else begin
+            counter <= counter + 1'b1;
+            if (counter >= 16'd65500) begin
+              current_state <= FINISH;
+              error <= 1'b1;
+              counter <= 16'd0;
+              direction <= 1'b1;
+            end
+          end
+        end
+
+        WAIT_HIGH: begin
+          if (sensor_out == 1'b1) begin
+            current_state <= END_SYNC;
+            counter <= 16'd0;
+            received_bits <= 6'd0;
+          end else begin
+            counter <= counter + 1'b1;
+            if (counter >= 16'd65500) begin
+              current_state <= FINISH;
+              error <= 1'b1;
+              counter <= 16'd0;
+              direction <= 1'b1;
+            end
+
+          end
+
+        end
+
+        END_SYNC: begin
+          if (sensor_out == 1'b0) begin
+            current_state <= WAIT_BIT;
+            counter <= counter + 1'b1;
+          end else begin
+            counter <= counter + 1'b1;
+            if (counter >= 16'd65500) begin
+              current_state <= FINISH;
+              error <= 1'b1;
+              counter <= 16'd0;
+              direction <= 1'b1;
+            end
+          end
+        end
+
+        WAIT_BIT: begin
+          if (sensor_out == 1'b1) begin
+            current_state <= READ_DATA;
+            counter <= 16'd0;
+          end else begin
+            counter <= counter + 1'b1;
+            if (counter >= 16'd65500) begin
+              current_state <= FINISH;
+              error <= 1'b1;
+              counter <= 16'd0;
+              direction <= 1'b1;
+            end
+          end
+        end
+
+        READ_DATA: begin
+          if (sensor_out == 1'b0) begin
+            received_bits <= received_bits + 1'b1;
+            current_state <= (received_bits >= 6'd39) ? COLECT_DATA : WAIT_BIT;
+            counter <= 16'd0;
+            if (counter >= 16'd60) begin
+              raw_data <= {raw_data[39:0], 1'b1};
+            end else begin
+              raw_data <= {raw_data[39:0], 1'b0};
+            end
+          end else begin
+            counter <= counter + 1'b1;
+            if (counter >= 16'd65500) begin
+              current_state <= FINISH;
+              error <= 1'b1;
+              counter <= 16'd0;
+              direction <= 1'b1;
+            end
+          end
+        end
+
+        COLECT_DATA: begin
+          sensor_data <= raw_data;
+          if (sensor_out == 1'b1) begin
+            current_state <= FINISH;
+            counter <= 16'd0;
+          end else begin
+            counter <= counter + 1'b1;
+            if (counter >= 16'd65500) begin
+              current_state <= IDLE;
+              counter <= 16'd0;
+              direction <= 1'b1;
+            end
+          end
+        end
+
+        FINISH: begin
+          if (error == 1'b1) begin
+            current_state <= FINISH;
+            counter <= counter + 1'b1;
+            if (counter >= 16'd65500) begin
+              current_state <= IDLE;
+              counter <= 16'd0;
+              direction <= 1'b1;
+              done <= 1'b1;
+            end
+          end else begin
+            done <= 1'b1;
+            current_state <= IDLE;
+            counter <= 16'd0;
+          end
+        end
+
+        default: begin
+          current_state <= IDLE;
+          counter <= 16'd0;
+        end
+
+      endcase
+    end
+  end
 endmodule

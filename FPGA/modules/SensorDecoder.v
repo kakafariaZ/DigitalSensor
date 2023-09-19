@@ -16,35 +16,37 @@ module SensorDecoder (
     output reg finished
 );
 
+  wire [39:0] sensor_data;
   wire [7:0] hum_int;
   wire [7:0] hum_float;
   wire [7:0] temp_int;
   wire [7:0] temp_float;
   wire [7:0] checksum;
 
-  reg reset_sensor;
   reg enable_sensor;
 
   wire hold;
-  wire debug;
   wire error;
+  wire data_invalid;
 
   DHT11 SS0 (
       .clock(clock),
       .enable(enable_sensor & device_selector[0]),
-      .reset(reset_sensor),
       .transmission_line(transmission_line),
-      .hum_int(hum_int),
-      .hum_float(hum_float),
-      .temp_int(temp_int),
-      .temp_float(temp_float),
-      .checksum(checksum),
-      .hold(hold),
-      .debug(debug),
-      .error(error)
+      .sensor_data(sensor_data),
+      .error(error),
+      .done(done)
   );
 
-  localparam [2:0] IDLE = 3'b000, READ = 3'b001, SEND = 3'b010, LOOP = 3'b011, FINISH = 3'b100;
+  assign hum_int = sensor_data[39:32];
+  assign hum_float = sensor_data[31:24];
+  assign temp_int = sensor_data[23:16];
+  assign temp_float = sensor_data[15:8];
+  assign checksum = sensor_data[7:0];
+
+  assign data_invalid = (checksum == hum_int + hum_float + temp_int + temp_int) ? 1'b1 : 1'b0;
+
+  localparam [1:0] IDLE = 2'b00, READ = 2'b01, LOOP = 2'b10, FINISH = 2'b11;
 
   reg [2:0] current_state = IDLE;
 
@@ -57,74 +59,71 @@ module SensorDecoder (
   always @(posedge clock) begin
     case (current_state)
       IDLE: begin
-        if (enable == 1'b1) begin
+        if (enable == 1'b0) begin
+          enable_sensor <= 1'b0;
+          current_state <= IDLE;
+        end else begin
           enable_sensor <= 1'b1;
-          reset_sensor  <= 1'b1;
           current_state <= READ;
         end
       end
       READ: begin
-        if (hold == 1'b1) begin
-          current_state <= SEND;
+        if (done == 1'b0) begin
+          current_state <= READ;
         end else begin
-          enable_sensor <= 1'b1;
-          reset_sensor  <= 1'b0;
-        end
-      end
-      SEND: begin
-        if (hold == 1'b0) begin
-          if (error == 1'b1) begin
-            requested_data <= 8'h10;
-          end else begin
-            case (request)
-              8'h00: begin
-                finished <= 1'b1;
-                current_state <= FINISH;
-                requested_data <= (error == 1'b1) ? 8'h10 : 8'h11; // WARN: This sould be in `ResponseHandler`!
+          case (request)
+            8'h00: begin
+              finished <= 1'b1;
+              current_state <= FINISH;
+              if (done == 1'b1 && error == 1'b0 && data_invalid == 1'b0) begin
+                requested_data <= 8'h11;
+              end else begin
+                requested_data <= 8'h10;
               end
-              8'h01: begin
-                finished <= 1'b1;
-                current_state <= FINISH;
-                requested_data <= temp_int;
-              end
-              8'h02: begin
-                finished <= 1'b1;
-                current_state <= FINISH;
-                requested_data <= temp_float;
-              end
-              8'h03: begin
-                finished <= 1'b1;
-                current_state <= FINISH;
-                requested_data <= hum_int;
-              end
-              8'h04: begin
-                finished <= 1'b1;
-                current_state <= FINISH;
-                requested_data <= hum_float;
-              end
-              8'h05: begin
-                current_part <= INT;
-                current_state <= LOOP;
-                selected_measure <= TEMP;
-              end
-              8'h06: begin
-                current_part <= INT;
-                current_state <= LOOP;
-                selected_measure <= HUM;
-              end
-              default: begin
-                finished <= 1'b1;
-                current_state <= FINISH;
-                requested_data <= 8'b00000000;
-              end
-            endcase
-          end
-        end else begin
-          current_state <= SEND;
+            end
+            8'h01: begin
+              finished <= 1'b1;
+              current_state <= FINISH;
+              requested_data <= temp_int;
+            end
+            8'h02: begin
+              finished <= 1'b1;
+              current_state <= FINISH;
+              requested_data <= temp_float;
+            end
+            8'h03: begin
+              finished <= 1'b1;
+              current_state <= FINISH;
+              requested_data <= hum_int;
+            end
+            8'h04: begin
+              finished <= 1'b1;
+              current_state <= FINISH;
+              requested_data <= hum_float;
+            end
+            8'h05: begin
+              current_part <= INT;
+              current_state <= LOOP;
+              selected_measure <= TEMP;
+            end
+            8'h06: begin
+              current_part <= INT;
+              current_state <= LOOP;
+              selected_measure <= HUM;
+            end
+            default: begin
+              finished <= 1'b1;
+              current_state <= FINISH;
+              requested_data <= 8'b00000000;
+            end
+          endcase
         end
       end
       LOOP: begin
-        if (request != 8'h07 || request != 8'h08) begin
+        if (request == 8'h07 || request == 8'h08) begin
+          finished <= 1'b1;
+          current_state <= FINISH;
+        end else begin
           case (selected_measure)
             TEMP: begin
               if (current_part == INT) begin
@@ -146,9 +145,6 @@ module SensorDecoder (
             end
             default: requested_data <= 8'b00000000;
           endcase
-        end else begin
-          finished <= 1'b1;
-          current_state <= FINISH;
         end
       end
       FINISH: begin
