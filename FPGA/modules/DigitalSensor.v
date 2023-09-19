@@ -29,8 +29,6 @@ module DigitalSensor (
     output wire sending_bit,
     output wire is_transmitting,
     output wire transmission_done
-    // output wire [6:0] first_digit,
-    // output wire [6:0] second_digit
 );
 
   wire [7:0] data_received;
@@ -110,29 +108,5 @@ module DigitalSensor (
       .is_transmitting(is_transmitting),
       .transmission_done(transmission_done)
   );
-
-  // BinaryToDisplay BD0 (
-  //     .clock(clock),
-  //     .binary_number(data_received[3:0]),
-  //     .segment_a(first_digit[6]),
-  //     .segment_b(first_digit[5]),
-  //     .segment_c(first_digit[4]),
-  //     .segment_d(first_digit[3]),
-  //     .segment_e(first_digit[2]),
-  //     .segment_f(first_digit[1]),
-  //     .segment_g(first_digit[0])
-  // );
-
-  // BinaryToDisplay BD1 (
-  //     .clock(clock),
-  //     .binary_number(data_received[7:4]),
-  //     .segment_a(second_digit[6]),
-  //     .segment_b(second_digit[5]),
-  //     .segment_c(second_digit[4]),
-  //     .segment_d(second_digit[3]),
-  //     .segment_e(second_digit[2]),
-  //     .segment_f(second_digit[1]),
-  //     .segment_g(second_digit[0])
-  // );
 
 endmodule
