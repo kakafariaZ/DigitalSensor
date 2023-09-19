@@ -11,6 +11,7 @@
 * `device_selector`. When it's address is decoded, said bit is driven to a high logical level,
 * indicating that the sensor will be activated.
 */
+
 module RequestHandler (
     input wire clock,
     input wire has_request,

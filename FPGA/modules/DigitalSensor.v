@@ -17,9 +17,6 @@
 *
 *   - `UART_TX`: Sends the information produced by the other sub modules back to the 'Client' via
 *   the UART protocol.
-*
-* NOTE: Some of the modules and outputs are commented out, as they were only used during the
-* testing of the prototype, although they may be used on the next phases of development.
 */
 
 module DigitalSensor (

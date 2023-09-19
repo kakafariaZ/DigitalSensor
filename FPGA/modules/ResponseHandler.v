@@ -6,6 +6,7 @@
 * It sends the corresponding response code and the decoded information back to the 'Client', by
 * handing it to the `UART_TX` module.
 */
+
 module ResponseHandler (
     input wire clock,
     input wire has_response,

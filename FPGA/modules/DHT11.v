@@ -11,10 +11,9 @@
 *
 * Source: https://www.kancloud.cn/dlover/fpga/1637659
 *
-* NOTE: Minor modifications were made to the original code to suit the targeted problem and for
-* better understanding of the working group.
+* NOTE: Modifications were made to the original code to suit the targeted problem and for better
+* understanding of the working group.
 */
-
 
 module DHT11 (
     input  wire        clock,

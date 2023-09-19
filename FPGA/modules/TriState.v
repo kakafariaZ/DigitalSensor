@@ -10,8 +10,8 @@
 *
 * Source: https://youtu.be/chALsRH3GM0?feature=shared
 *
-* NOTE: Minor modifications were made to the original code to suit the targeted problem and for
-* better understanding of the working group.
+* NOTE: Modifications were made to the original code to suit the targeted problem and for better
+* understanding of the working group.
 */
 
 module TriState (
