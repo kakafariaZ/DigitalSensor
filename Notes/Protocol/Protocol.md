@@ -32,6 +32,8 @@
 | 0x17 |   Confirmation of the activation of continuos monitoring of the humidity level    |
 | 0x18 | Confirmation of the deactivation of continuos monitoring of the temperature level |
 | 0x19 |  Confirmation of the deactivation of continuos monitoring of the humidity level   |
+| 0xEC |             ERROR: Command received isn't registered on the Protocol              |
+| 0xED |          ERROR: Device address received isn't registered on the Protocol          |
 
 ###### Available devices
 
