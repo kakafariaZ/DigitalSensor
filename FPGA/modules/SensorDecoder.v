@@ -114,7 +114,7 @@ module SensorDecoder (
             default: begin
               finished <= 1'b1;
               current_state <= FINISH;
-              requested_data <= 8'b00000000;
+              requested_data <= 8'hEC;
             end
           endcase
         end
