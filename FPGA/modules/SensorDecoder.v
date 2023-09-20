@@ -27,7 +27,7 @@ module SensorDecoder (
 
   wire hold;
   wire error;
-  wire data_invalid;
+  wire data_valid;
 
   DHT11 SS0 (
       .clock(clock),
@@ -44,7 +44,7 @@ module SensorDecoder (
   assign temp_float = sensor_data[15:8];
   assign checksum = sensor_data[7:0];
 
-  assign data_invalid = (checksum == hum_int + hum_float + temp_int + temp_int) ? 1'b1 : 1'b0;
+  assign data_valid = (checksum == hum_int + hum_float + temp_int + temp_int) ? 1'b1 : 1'b0;
 
   localparam [1:0] IDLE = 2'b00, READ = 2'b01, LOOP = 2'b10, FINISH = 2'b11;
 
@@ -75,7 +75,7 @@ module SensorDecoder (
             8'h00: begin
               finished <= 1'b1;
               current_state <= FINISH;
-              if (done == 1'b1 && error == 1'b0 && data_invalid == 1'b0) begin
+              if (done == 1'b1 && data_valid == 1'b1 && error == 1'b0) begin
                 requested_data <= 8'h11;
               end else begin
                 requested_data <= 8'h10;
