@@ -25,7 +25,7 @@ module ResponseHandler (
       case (current_state)
         TYPE: begin
           case (request_code)
-            8'h00:   response <= 8'h00;  // WARN: Request sensor current state...
+            8'h00:   response <= data_to_send;
             8'h01:   response <= 8'h12;
             8'h02:   response <= 8'h13;
             8'h03:   response <= 8'h14;
@@ -34,7 +34,7 @@ module ResponseHandler (
             8'h06:   response <= 8'h17;
             8'h07:   response <= 8'h18;
             8'h08:   response <= 8'h19;
-            default: response <= 8'b00000000;
+            default: response <= data_to_send;
           endcase
           current_state  <= DATA;
           response_ready <= 1'b1;
