@@ -42,12 +42,12 @@ module SensorDecoder (
   // );
 
   DHT11_Alt SS0 (
-    .clock(clock),
-    .enable_sensor(enable_sensor & device_selector[0]),
-    .dht11(transmission_line),
-    .dados_sensor(sensor_data),
-    .erro(error),
-    .done(done)
+      .clock(clock),
+      .enable_sensor(enable_sensor & device_selector[0]),
+      .dht11(transmission_line),
+      .dados_sensor(sensor_data),
+      .erro(error),
+      .done(done)
   );
 
   assign hum_int = sensor_data[39:32];
@@ -134,8 +134,8 @@ module SensorDecoder (
               current_state <= FINISH;
             end
             default: begin
+              response_code <= 8'hEC;  // Invalid command!
               response <= 8'hEC;
-              response_code <= 8'hEC;
               finished <= 1'b1;
               current_state <= FINISH;
             end
@@ -143,13 +143,13 @@ module SensorDecoder (
         end
       end
       LOOP: begin
-        if (request == 8'h07 || request == 8'h08) begin
-          if (request == 8'h07) begin
-            response_code <= 8'h17;
-            response <= 8'hCA;
+        if (request == 8'h05 || request == 8'h06) begin
+          if (request == 8'h07) begin  // Deactivate the current monitoring of the temperature.
+            response_code <= 8'h17;  // Confirms the deactivation of the monitoring.
+            response <= 8'hCA;  // Confirms the previous action.
           end else begin
-            response_code <= 8'h18;
-            response <= 8'hCA;
+            response_code <= 8'h18;  // Confirms the deactivation of the monitoring.
+            response <= 8'hCA;  // Confirm the previous action.
           end
           counter <= 27'd0;
           finished <= 1'b1;
