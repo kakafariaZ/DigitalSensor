@@ -16,6 +16,8 @@ module SensorDecoder (
     output reg finished
 );
 
+  reg [26:0] counter;
+
   wire [39:0] sensor_data;
   wire [7:0] hum_int;
   wire [7:0] hum_float;
@@ -121,30 +123,44 @@ module SensorDecoder (
       end
       LOOP: begin
         if (request == 8'h07 || request == 8'h08) begin
+          counter <= 27'd0;
           finished <= 1'b1;
+          enable_sensor <= 1'b0;
           current_state <= FINISH;
         end else begin
-          case (selected_measure)
-            TEMP: begin
-              if (current_part == INT) begin
-                requested_data <= temp_int;
-                current_part   <= FLOAT;
-              end else begin
-                requested_data <= temp_float;
-                current_part   <= INT;
-              end
+          if (counter >= 27'd100000000) begin
+            enable_sensor <= 1'b1;
+            if (done == 1'b1) begin
+              case (selected_measure)
+                TEMP: begin
+                  if (current_part == INT) begin
+                    requested_data <= temp_int;
+                    current_part   <= FLOAT;
+                  end else begin
+                    requested_data <= temp_float;
+                    current_part <= INT;
+                    counter <= 27'd0;
+                  end
+                end
+                HUM: begin
+                  if (current_part == INT) begin
+                    requested_data <= hum_int;
+                    current_part   <= FLOAT;
+                  end else begin
+                    requested_data <= hum_float;
+                    current_part <= INT;
+                    counter <= 27'd0;
+                  end
+                end
+                default: requested_data <= 8'b00000000;
+              endcase
             end
-            HUM: begin
-              if (current_part == INT) begin
-                requested_data <= hum_int;
-                current_part   <= FLOAT;
-              end else begin
-                requested_data <= hum_float;
-                current_part   <= INT;
-              end
-            end
-            default: requested_data <= 8'b00000000;
-          endcase
+          end else begin
+            counter <= counter + 27'd1;
+            finished <= 1'b0;
+            enable_sensor <= 1'b0;
+            current_state <= LOOP;
+          end
         end
       end
       FINISH: begin
