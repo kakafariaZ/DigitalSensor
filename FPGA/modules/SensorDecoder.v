@@ -32,13 +32,22 @@ module SensorDecoder (
   wire error;
   wire data_valid;
 
-  DHT11 SS0 (
-      .clock(clock),
-      .enable(enable_sensor & device_selector[0]),
-      .transmission_line(transmission_line),
-      .sensor_data(sensor_data),
-      .error(error),
-      .done(done)
+  // DHT11 SS0 (
+  //     .clock(clock),
+  //     .enable(enable_sensor & device_selector[0]),
+  //     .transmission_line(transmission_line),
+  //     .sensor_data(sensor_data),
+  //     .error(error),
+  //     .done(done)
+  // );
+
+  DHT11_Alt SS0 (
+    .clock(clock),
+    .enable_sensor(enable_sensor & device_selector[0]),
+    .dht11(transmission_line),
+    .dados_sensor(sensor_data),
+    .erro(error),
+    .done(done)
   );
 
   assign hum_int = sensor_data[39:32];

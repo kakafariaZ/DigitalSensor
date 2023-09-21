@@ -75,6 +75,7 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name VERILOG_FILE testbenchs/UART_TB.v
 set_global_assignment -name VERILOG_FILE modules/DigitalSensor.v
 set_global_assignment -name VERILOG_FILE modules/DHT11.v
+set_global_assignment -name VERILOG_FILE modules/DHT11_Alt.v
 set_global_assignment -name VERILOG_FILE modules/TriState.v
 set_global_assignment -name VERILOG_FILE modules/UART_RX.v
 set_global_assignment -name VERILOG_FILE modules/UART_TX.v
