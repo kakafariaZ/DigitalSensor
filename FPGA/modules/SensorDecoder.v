@@ -58,7 +58,7 @@ module SensorDecoder (
 
   assign data_valid = (checksum == hum_int + hum_float + temp_int + temp_int) ? 1'b1 : 1'b0;
 
-  localparam [1:0] IDLE = 2'b00, READ = 2'b01, LOOP = 2'b10, FINISH = 2'b11;
+  localparam [2:0] IDLE = 3'b000, READ = 3'b001, LOOP = 3'b010, FINISH = 3'b011, STOP = 3'b100;
 
   reg [2:0] current_state = IDLE;
 
@@ -88,59 +88,58 @@ module SensorDecoder (
               if (done == 1'b1 && data_valid == 1'b1 && error == 1'b0) begin
                 response_code <= 8'h10;
                 response <= 8'h11;  // Sensor working normally.
-                finished <= 1'b1;
                 current_state <= FINISH;
               end else begin
                 response_code <= 8'h10;
                 response <= 8'h12;  // Sensor with problems.
-                finished <= 1'b1;
                 current_state <= FINISH;
               end
             end
             8'h01: begin  // Request the current temperature level.
               response_code <= 8'h13;
               response <= temp_int;  // Integer part of the temperature.
-              finished <= 1'b1;
               current_state <= FINISH;
             end
             8'h02: begin  // Request the current humidity level.
               response_code <= 8'h14;
               response <= hum_int;  // Integer part of the humidity.
-              finished <= 1'b1;
               current_state <= FINISH;
             end
             8'h03: begin  // Activate the current monitoring of the temperature.
               response_code <= 8'h15;
               response <= 8'hCA;
-              finished <= 1'b1;
               current_state <= LOOP;
             end
             8'h04: begin  // Activate the current monitoring of the humidity.
               response_code <= 8'h16;
               response <= 8'hCA;
-              finished <= 1'b1;
               current_state <= LOOP;
             end
             8'h05: begin  // Deactivate the current monitoring of the temperature.
               response_code <= 8'h17;
               response <= 8'hEA;  // Invalid action! Can't Deactivate something that isn't active...
-              finished <= 1'b1;
               current_state <= FINISH;
             end
             8'h06: begin  // Deactivate the current monitoring of the humidity.
               response_code <= 8'h18;
               response <= 8'hEA;  // Invalid action! Can't Deactivate something that isn't active...
-              finished <= 1'b1;
               current_state <= FINISH;
             end
             default: begin
               response_code <= 8'hEC;  // Invalid command!
               response <= 8'hEC;
-              finished <= 1'b1;
               current_state <= FINISH;
             end
           endcase
         end
+      end
+      FINISH: begin
+        finished <= 1'b1;
+        current_state <= STOP;
+      end
+      STOP: begin
+        enable_sensor <= 1'b0;
+        current_state <= IDLE;
       end
       LOOP: begin
         if (request == 8'h05 || request == 8'h06) begin
@@ -178,11 +177,6 @@ module SensorDecoder (
             current_state <= LOOP;
           end
         end
-      end
-      FINISH: begin
-        finished <= 1'b0;
-        enable_sensor <= 1'b0;
-        current_state <= IDLE;
       end
       default: begin
         current_state <= IDLE;
