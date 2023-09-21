@@ -9,31 +9,28 @@
 | Code |                       Description                        |
 | :--: | :------------------------------------------------------: |
 | 0x00 |         Request the current state of the sensor          |
-| 0x01 |    Request the current temperature level - Whole part    |
-| 0x02 | Request the current temperature level - Fractional part  |
-| 0x03 |     Request the current humidity level - Whole part      |
-| 0x04 |     Request the current humidity level - Fractional      |
-| 0x05 |  Activate continuos monitoring of the temperature level  |
-| 0x06 |   Activate continuos monitoring of the humidity level    |
-| 0x07 | Deactivate continuos monitoring of the temperature level |
-| 0x08 |  Deactivate continuos monitoring of the humidity level   |
+| 0x01 |          Request the current temperature level           |
+| 0x02 |            Request the current humidity level            |
+| 0x03 |  Activate continuos monitoring of the temperature level  |
+| 0x04 |   Activate continuos monitoring of the humidity level    |
+| 0x05 | Deactivate continuos monitoring of the temperature level |
+| 0x06 |  Deactivate continuos monitoring of the humidity level   |
 
 ###### Response commands
 
-| Code |                                    Description                                    |
-| :--: | :-------------------------------------------------------------------------------: |
-| 0x10 |                               Sensor with problems                                |
-| 0x11 |                              Sensor working normally                              |
-| 0x12 |                          Temperature level - Whole part                           |
-| 0x13 |                        Temperature level - Fractional part                        |
-| 0x14 |                            Humidity level - Whole part                            |
-| 0x15 |                         Humidity level - Fractional part                          |
-| 0x16 |  Confirmation of the activation of continuos monitoring of the temperature level  |
-| 0x17 |   Confirmation of the activation of continuos monitoring of the humidity level    |
-| 0x18 | Confirmation of the deactivation of continuos monitoring of the temperature level |
-| 0x19 |  Confirmation of the deactivation of continuos monitoring of the humidity level   |
-| 0xEC |             ERROR: Command received isn't registered on the Protocol              |
-| 0xED |          ERROR: Device address received isn't registered on the Protocol          |
+| Code |                                    Description                                    |   Optional   |
+| :--: | :-------------------------------------------------------------------------------: | :----------: |
+| 0x10 |                           Current status of the sensor                            | 0x11 or 0x12 |
+| 0x13 |                                 Temperature level                                 |              |
+| 0x14 |                                  Humidity level                                   |              |
+| 0x15 |  Confirmation of the activation of continuos monitoring of the temperature level  |              |
+| 0x16 |   Confirmation of the activation of continuos monitoring of the humidity level    |              |
+| 0x17 | Confirmation of the deactivation of continuos monitoring of the temperature level |              |
+| 0x18 |  Confirmation of the deactivation of continuos monitoring of the humidity level   |              |
+| 0xCA |                           Confirms the received request                           |
+| 0xEA |            ERROR: Invalid action at the current state of the prototype            |              |
+| 0xEC |             ERROR: Command received isn't registered on the Protocol              |              |
+| 0xED |          ERROR: Device address received isn't registered on the Protocol          |              |
 
 ###### Available devices
 
