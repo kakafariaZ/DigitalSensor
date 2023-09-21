@@ -56,7 +56,8 @@ module DigitalSensor (
       .device_selector(device_selector)
   );
 
-  wire [7:0] requested_data;
+  wire [7:0] response;
+  wire [7:0] response_code;
   wire       finished;
   wire       enable;
 
@@ -68,27 +69,26 @@ module DigitalSensor (
       .device_selector(device_selector),
       .transmission_line(transmission_line),
       .request(request),
-      .requested_data(requested_data),
+      .response(response),
+      .response_code(response_code),
       .finished(finished)
   );
 
   wire has_response;
-  wire [7:0] request_code;
   wire [7:0] data_to_send_rh;
   wire response_ready;
-  wire [7:0] response;
+  wire [7:0] response_rh;
 
   assign has_response = finished;
-  assign request_code = request;
-  assign data_to_send_rh = requested_data;
+  assign data_to_send_rh = response;
 
   ResponseHandler RESH0 (
       .clock(clock),
       .has_response(has_response),
-      .request_code(request_code),
       .data_to_send(data_to_send_rh),
+      .response_code(response_code),
       .response_ready(response_ready),
-      .response(response)
+      .response(response_rh)
   );
 
   wire has_data_tx;
