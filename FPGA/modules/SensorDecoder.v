@@ -138,6 +138,7 @@ module SensorDecoder (
         current_state <= STOP;
       end
       STOP: begin
+        finished <= 1'b0;
         enable_sensor <= 1'b0;
         current_state <= IDLE;
       end
@@ -151,8 +152,6 @@ module SensorDecoder (
             response <= 8'hCA;  // Confirm the previous action.
           end
           counter <= 27'd0;
-          finished <= 1'b1;
-          enable_sensor <= 1'b0;
           current_state <= FINISH;
         end else begin
           if (counter >= 27'd100000000) begin
@@ -172,8 +171,6 @@ module SensorDecoder (
             end
           end else begin
             counter <= counter + 27'd1;
-            finished <= 1'b0;
-            enable_sensor <= 1'b0;
             current_state <= LOOP;
           end
         end
