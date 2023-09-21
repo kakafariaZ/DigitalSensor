@@ -12,7 +12,8 @@ module SensorDecoder (
     inout wire transmission_line,
     input wire [31:0] device_selector,
     input wire [7:0] request,
-    output reg [7:0] requested_data,
+    output reg [7:0] response,
+    output reg [7:0] response_code,
     output reg finished
 );
 
@@ -74,55 +75,73 @@ module SensorDecoder (
           current_state <= READ;
         end else begin
           case (request)
-            8'h00: begin
-              finished <= 1'b1;
-              current_state <= FINISH;
+            8'h00: begin  // Current state of the sensor.
               if (done == 1'b1 && data_valid == 1'b1 && error == 1'b0) begin
-                requested_data <= 8'h11;
+                response_code <= 8'h10;
+                response <= 8'h11;  // Sensor working normally.
+                finished <= 1'b1;
+                current_state <= FINISH;
               end else begin
-                requested_data <= 8'h10;
+                response_code <= 8'h10;
+                response <= 8'h12;  // Sensor with problems.
+                finished <= 1'b1;
+                current_state <= FINISH;
               end
             end
-            8'h01: begin
+            8'h01: begin  // Request the current temperature level.
+              response_code <= 8'h13;
+              response <= temp_int;  // Integer part of the temperature.
               finished <= 1'b1;
               current_state <= FINISH;
-              requested_data <= temp_int;
             end
-            8'h02: begin
+            8'h02: begin  // Request the current humidity level.
+              response_code <= 8'h14;
+              response <= hum_int;  // Integer part of the humidity.
               finished <= 1'b1;
               current_state <= FINISH;
-              requested_data <= temp_float;
             end
-            8'h03: begin
+            8'h03: begin  // Activate the current monitoring of the temperature.
+              response_code <= 8'h15;
+              response <= 8'hCA;
               finished <= 1'b1;
-              current_state <= FINISH;
-              requested_data <= hum_int;
-            end
-            8'h04: begin
-              finished <= 1'b1;
-              current_state <= FINISH;
-              requested_data <= hum_float;
-            end
-            8'h05: begin
-              current_part <= INT;
               current_state <= LOOP;
-              selected_measure <= TEMP;
             end
-            8'h06: begin
-              current_part <= INT;
+            8'h04: begin  // Activate the current monitoring of the humidity.
+              response_code <= 8'h16;
+              response <= 8'hCA;
+              finished <= 1'b1;
               current_state <= LOOP;
-              selected_measure <= HUM;
+            end
+            8'h05: begin  // Deactivate the current monitoring of the temperature.
+              response_code <= 8'h17;
+              response <= 8'hEA;  // Invalid action! Can't Deactivate something that isn't active...
+              finished <= 1'b1;
+              current_state <= FINISH;
+            end
+            8'h06: begin  // Deactivate the current monitoring of the humidity.
+              response_code <= 8'h18;
+              response <= 8'hEA;  // Invalid action! Can't Deactivate something that isn't active...
+              finished <= 1'b1;
+              current_state <= FINISH;
             end
             default: begin
+              response <= 8'hEC;
+              response_code <= 8'hEC;
               finished <= 1'b1;
               current_state <= FINISH;
-              requested_data <= 8'hEC;
             end
           endcase
         end
       end
       LOOP: begin
         if (request == 8'h07 || request == 8'h08) begin
+          if (request == 8'h07) begin
+            response_code <= 8'h17;
+            response <= 8'hCA;
+          end else begin
+            response_code <= 8'h18;
+            response <= 8'hCA;
+          end
           counter <= 27'd0;
           finished <= 1'b1;
           enable_sensor <= 1'b0;
@@ -133,26 +152,14 @@ module SensorDecoder (
             if (done == 1'b1) begin
               case (selected_measure)
                 TEMP: begin
-                  if (current_part == INT) begin
-                    requested_data <= temp_int;
-                    current_part   <= FLOAT;
-                  end else begin
-                    requested_data <= temp_float;
-                    current_part <= INT;
-                    counter <= 27'd0;
-                  end
+                  response_code <= 8'h13;
+                  response <= temp_int;
                 end
                 HUM: begin
-                  if (current_part == INT) begin
-                    requested_data <= hum_int;
-                    current_part   <= FLOAT;
-                  end else begin
-                    requested_data <= hum_float;
-                    current_part <= INT;
-                    counter <= 27'd0;
-                  end
+                  response_code <= 8'h14;
+                  response <= hum_int;
                 end
-                default: requested_data <= 8'b00000000;
+                default: response <= 8'b00000000;
               endcase
             end
           end else begin
