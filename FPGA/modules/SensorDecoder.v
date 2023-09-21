@@ -63,10 +63,8 @@ module SensorDecoder (
   reg [2:0] current_state = IDLE;
 
   localparam TEMP = 1'b1, HUM = 1'b0;
-  localparam INT = 1'b1, FLOAT = 1'b0;
 
   reg selected_measure;
-  reg current_part;
 
   always @(posedge clock) begin
     case (current_state)
@@ -108,11 +106,13 @@ module SensorDecoder (
             8'h03: begin  // Activate the current monitoring of the temperature.
               response_code <= 8'h15;
               response <= 8'hCA;
+              selected_measure <= TEMP;
               current_state <= LOOP;
             end
             8'h04: begin  // Activate the current monitoring of the humidity.
               response_code <= 8'h16;
               response <= 8'hCA;
+              selected_measure <= HUM;
               current_state <= LOOP;
             end
             8'h05: begin  // Deactivate the current monitoring of the temperature.
