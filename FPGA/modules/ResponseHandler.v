@@ -24,9 +24,9 @@ module ResponseHandler (
     if (has_response == 1'b1) begin
       case (current_state)
         CODE: begin
-          current_state  <= DATA;
+          current_state <= DATA;
           response_ready <= 1'b1;
-          response_code  <= response_code;
+          response <= response_code;
         end
         DATA: begin
           current_state <= CODE;
@@ -34,7 +34,7 @@ module ResponseHandler (
           response <= data_to_send;
         end
         default: begin
-          current_state <= TYPE;
+          current_state <= CODE;
         end
       endcase
     end
