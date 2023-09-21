@@ -35,6 +35,8 @@ module ResponseHandler (
         end
         default: begin
           current_state <= CODE;
+          response_ready <= 1'b0;
+          response <= 8'hFF;
         end
       endcase
     end

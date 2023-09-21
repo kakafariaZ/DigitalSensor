@@ -144,7 +144,7 @@ module SensorDecoder (
       end
       LOOP: begin
         if (request == 8'h05 || request == 8'h06) begin
-          if (request == 8'h07) begin  // Deactivate the current monitoring of the temperature.
+          if (request == 8'h05) begin  // Deactivate the current monitoring of the temperature.
             response_code <= 8'h17;  // Confirms the deactivation of the monitoring.
             response <= 8'hCA;  // Confirms the previous action.
           end else begin
@@ -168,7 +168,7 @@ module SensorDecoder (
                   response_code <= 8'h14;
                   response <= hum_int;
                 end
-                default: response <= 8'b00000000;
+                default: response <= 8'hFF;
               endcase
             end
           end else begin

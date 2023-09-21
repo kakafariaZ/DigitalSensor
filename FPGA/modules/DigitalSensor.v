@@ -95,7 +95,7 @@ module DigitalSensor (
   wire [7:0] data_to_send_tx;
 
   assign has_data_tx = response_ready;
-  assign data_to_send_tx = response;
+  assign data_to_send_tx = response_rh;
 
   UART_TX TX0 (
       .clock(clock),
