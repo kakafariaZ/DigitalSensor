@@ -39,6 +39,9 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer);
 // Handles the continuous monitoring using a separate thread.
 void *continuosMonitoring(void *args);
 
+// Holds all protocol commands
+const char available_commands[] = {REQ_STATUS, REQ_TEMP, REQ_HUM, REQ_ACT_MNTR_TEMP, REQ_ACT_MNTR_HUM, REQ_DEACT_MNTR_TEMP, REQ_DEACT_MNTR_HUM};
+
 int main(void) {
   int fileDescriptor;
   int request = 0;
@@ -72,10 +75,20 @@ int main(void) {
     if (request != 0) {           // If the user don't quit...
       openPort(&fileDescriptor);  // Opens the serial port
       if (configureSerialPort(fileDescriptor)) {
-        return 1;  // Quit the program if cant configure port.
+         return 1;  // Quit the program if cant configure port.
       }
+      
+      // First byte of the communication is the command.
+      dataToSend[0] = available_commands[request-1];
       // Second byte of the communication is the sensor address.
       dataToSend[1] = availableSensors[chooseSensor()];
+
+      // Send the request to FPGA:
+      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
+      if (transmition_error) {
+        printf("TRANSMITION ERROR!!\n");
+        continue;
+      }
     }
 
     switch (request) {
@@ -84,12 +97,7 @@ int main(void) {
         break;
 
       case 1:
-        dataToSend[0] = REQ_STATUS;
-        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-
-        if (transmition_error) 
-          printf("TRANSMITION ERROR!!\n");
-        else if (buffer[1] == RESP_STATUS_OK)
+        if (buffer[1] == RESP_STATUS_OK)
           printf("Sensor working normally!\n");
         else if (buffer[1] == RESP_STATUS_ERROR)
           printf("Sensor with problem!\n");
@@ -98,12 +106,7 @@ int main(void) {
         break;
 
       case 2:
-        dataToSend[0] = REQ_TEMP;
-        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-
-        if (transmition_error)
-          printf("TRANSMITION ERROR!!\n");
-        else if (buffer[0] != RESP_TEMP)
+        if (buffer[0] != RESP_TEMP)
           printf("Communication Error!\n");
         else {
           temp = (int)buffer[1];
@@ -113,11 +116,7 @@ int main(void) {
         break;
 
       case 3:
-        dataToSend[0] = REQ_HUM;
-        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-        if (transmition_error) 
-          printf("TRANSMITION ERROR!!\n");
-        else if (buffer[0] != RESP_HUM)
+        if (buffer[0] != RESP_HUM)
           printf("Communication Error!\n");
         else {
           humi = (int)buffer[1];
@@ -128,18 +127,9 @@ int main(void) {
 
       default:
         thread_information[0] = fileDescriptor;
-        if (request == 4) {
-          dataToSend[0] = REQ_ACT_MNTR_TEMP;
-          thread_information[1] = 1;
-        } else {
-          dataToSend[0] = REQ_ACT_MNTR_HUM;
-          thread_information[1] = 0;
-        }
+        thread_information[1] = (request == 4) ? 1 : 0;
 
         system("clear");
-        // asking for continuous monitoring.
-        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(2);
 
         // Create a thread for continuous monitoring.
         if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) !=
@@ -154,17 +144,14 @@ int main(void) {
         pthread_join(monitoring_thread, NULL);
         printf("Finishing continuous monitoring");
 
-        if (request == 4)
-          dataToSend[0] = REQ_DEACT_MNTR_TEMP;
-        else
-          dataToSend[0] = REQ_DEACT_MNTR_HUM;
+        dataToSend[0] = available_commands[request + 1];
 
         sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(1);
         system("clear");
 
         break;
     }
+
   } while (request != 0);
 
   close(fileDescriptor);
