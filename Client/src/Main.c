@@ -82,58 +82,50 @@ int main(void) {
       case 0:
         printf("Finishing...\n");
         break;
+
       case 1:
         dataToSend[0] = REQ_STATUS;
         transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
 
-        if (transmition_error) {
-          printf("An error occourred!\n");
-          return 1;
-        }
-
-        if (buffer[1] == RESP_STATUS_OK)
+        if (transmition_error) 
+          printf("TRANSMITION ERROR!!\n");
+        else if (buffer[1] == RESP_STATUS_OK)
           printf("Sensor working normally!\n");
         else if (buffer[1] == RESP_STATUS_ERROR)
           printf("Sensor with problem!\n");
         else
           printf("Communication Error!\n");
         break;
+
       case 2:
         dataToSend[0] = REQ_TEMP;
         transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-        if (transmition_error) {
-          printf("An error occourred!\n");
-          return 1;
-        }
 
-        if (buffer[0] != RESP_TEMP) {
+        if (transmition_error)
+          printf("TRANSMITION ERROR!!\n");
+        else if (buffer[0] != RESP_TEMP)
           printf("Communication Error!\n");
-          break;
+        else {
+          temp = (int)buffer[1];
+          printf("Temperature of Sensor %d: \n", choosedSensor);
+          printf("   %d ºC\n", temp);
         }
-
-        temp = (int)buffer[1];
-
-        printf("Temperature of Sensor %d: \n", choosedSensor);
-        printf("   %d ºC\n", temp);
         break;
+
       case 3:
         dataToSend[0] = REQ_HUM;
         transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-        if (transmition_error) {
-          printf("An error occourred!\n");
-          return 1;
-        }
-
-        if (buffer[0] != RESP_HUM) {
+        if (transmition_error) 
+          printf("TRANSMITION ERROR!!\n");
+        else if (buffer[0] != RESP_HUM)
           printf("Communication Error!\n");
-          break;
+        else {
+          humi = (int)buffer[1];
+          printf("Humidity of Sensor %d: \n", choosedSensor);
+          printf("   %d %%\n", humi);
         }
-
-        humi = (int)buffer[1];
-
-        printf("Humidity of Sensor %d: \n", choosedSensor);
-        printf("   %d %%\n", humi);
         break;
+
       default:
         thread_information[0] = fileDescriptor;
         if (request == 4) {
@@ -147,7 +139,7 @@ int main(void) {
         system("clear");
         // asking for continuous monitoring.
         sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(1);
+        sleep(2);
 
         // Create a thread for continuous monitoring.
         if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) !=
