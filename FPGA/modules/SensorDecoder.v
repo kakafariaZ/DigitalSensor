@@ -17,6 +17,26 @@ module SensorDecoder (
     output reg finished
 );
 
+  localparam [7:0] REQ_CURRENT_STATE     = 8'h00,
+                   REQ_TEMP              = 8'h01,
+                   REQ_HUMI              = 8'h02,
+                   ACT_MONIT_TEMP        = 8'h03,
+                   ACT_MONIT_HUMI        = 8'h04,
+                   DEACT_MONIT_TEMP      = 8'h05,
+                   DEACT_MONIT_HUMI      = 8'h06;
+
+  localparam [7:0] RESP_CURRENT_STATE    = 8'h10,
+                   DEVICE_ERROR          = 8'hDE,
+                   DEVICE_FUNCTIONING    = 8'hDF,
+                   RESP_TEMP             = 8'h11,
+                   RESP_HUMI             = 8'h12,
+                   CONF_DEACT_MONIT_TEMP = 8'h15,
+                   CONF_DEACT_MONIT_HUMI = 8'h16,
+                   CONFIRM_ACTION        = 8'hCA,
+                   INVALID_ACTION        = 8'hEA,
+                   UNKNOWN_COMMAND       = 8'hEC,
+                   UNKNOWN_DEVICE        = 8'hED;
+
   reg [26:0] counter;
 
   wire [39:0] sensor_data;
@@ -61,9 +81,11 @@ module SensorDecoder (
     case (current_state)
       IDLE: begin
         if (enable == 1'b0) begin
+          finished <= 1'b0;
           enable_sensor <= 1'b0;
           current_state <= IDLE;
         end else begin
+          finished <= 1'b0;
           enable_sensor <= 1'b1;
           current_state <= READ;
         end
@@ -73,52 +95,48 @@ module SensorDecoder (
           current_state <= READ;
         end else begin
           case (request)
-            8'h00: begin  // Current state of the sensor.
+            REQ_CURRENT_STATE: begin
               if (done == 1'b1 && data_valid == 1'b1 && error == 1'b0) begin
-                response_code <= 8'h10;
-                response <= 8'h11;  // Sensor working normally.
+                response_code <= RESP_CURRENT_STATE;
+                response <= DEVICE_FUNCTIONING;
                 current_state <= FINISH;
               end else begin
-                response_code <= 8'h10;
-                response <= 8'h12;  // Sensor with problems.
+                response_code <= RESP_CURRENT_STATE;
+                response <= DEVICE_ERROR;
                 current_state <= FINISH;
               end
             end
-            8'h01: begin  // Request the current temperature level.
-              response_code <= 8'h13;
-              response <= temp_int;  // Integer part of the temperature.
+            REQ_TEMP: begin
+              response_code <= RESP_TEMP;
+              response <= temp_int;
               current_state <= FINISH;
             end
-            8'h02: begin  // Request the current humidity level.
-              response_code <= 8'h14;
-              response <= hum_int;  // Integer part of the humidity.
+            REQ_HUMI: begin
+              response_code <= RESP_HUMI;
+              response <= hum_int;
               current_state <= FINISH;
             end
-            8'h03: begin  // Activate the current monitoring of the temperature.
-              response_code <= 8'h15;
-              response <= 8'hCA;
+            ACT_MONIT_TEMP: begin
               selected_measure <= TEMP;
               current_state <= LOOP;
             end
-            8'h04: begin  // Activate the current monitoring of the humidity.
-              response_code <= 8'h16;
-              response <= 8'hCA;
+            ACT_MONIT_HUMI: begin
               selected_measure <= HUM;
               current_state <= LOOP;
             end
-            8'h05: begin  // Deactivate the current monitoring of the temperature.
-              response_code <= 8'h17;
-              response <= 8'hEA;  // Invalid action! Can't Deactivate something that isn't active...
+            DEACT_MONIT_TEMP: begin
+              response_code <= CONF_DEACT_MONIT_TEMP;
+              response <= INVALID_ACTION;
               current_state <= FINISH;
             end
-            8'h06: begin  // Deactivate the current monitoring of the humidity.
-              response_code <= 8'h18;
-              response <= 8'hEA;  // Invalid action! Can't Deactivate something that isn't active...
+            DEACT_MONIT_HUMI: begin
+              response_code <= CONF_DEACT_MONIT_HUMI;
+              response <= INVALID_ACTION;
               current_state <= FINISH;
             end
             default: begin
-              response_code <= 8'hEC;  // Invalid command!
-              response <= 8'hEC;
+              response_code <= UNKNOWN_COMMAND;
+              response <= UNKNOWN_COMMAND;
               current_state <= FINISH;
             end
           endcase
@@ -129,18 +147,17 @@ module SensorDecoder (
         current_state <= STOP;
       end
       STOP: begin
-        finished <= 1'b0;
         enable_sensor <= 1'b0;
         current_state <= IDLE;
       end
       LOOP: begin
-        if (request == 8'h05 || request == 8'h06) begin
-          if (request == 8'h05) begin  // Deactivate the current monitoring of the temperature.
-            response_code <= 8'h17;  // Confirms the deactivation of the monitoring.
-            response <= 8'hCA;  // Confirms the previous action.
+        if (request == DEACT_MONIT_TEMP || request == DEACT_MONIT_HUMI) begin
+          if (request == DEACT_MONIT_TEMP) begin
+            response_code <= CONF_DEACT_MONIT_TEMP;
+            response <= CONFIRM_ACTION;
           end else begin
-            response_code <= 8'h18;  // Confirms the deactivation of the monitoring.
-            response <= 8'hCA;  // Confirm the previous action.
+            response_code <= CONF_DEACT_MONIT_HUMI;
+            response <= CONFIRM_ACTION;
           end
           counter <= 27'd0;
           current_state <= FINISH;
@@ -150,12 +167,14 @@ module SensorDecoder (
             if (done == 1'b1) begin
               case (selected_measure)
                 TEMP: begin
-                  response_code <= 8'h13;
+                  response_code <= RESP_TEMP;
                   response <= temp_int;
+                  counter <= 27'd0;
                 end
                 HUM: begin
-                  response_code <= 8'h14;
+                  response_code <= RESP_HUMI;
                   response <= hum_int;
+                  counter <= 27'd0;
                 end
                 default: response <= 8'hFF;
               endcase
@@ -163,6 +182,7 @@ module SensorDecoder (
           end else begin
             counter <= counter + 27'd1;
             current_state <= LOOP;
+            enable_sensor = 1'b0;
           end
         end
       end
