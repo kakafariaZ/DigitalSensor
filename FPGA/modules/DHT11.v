@@ -34,16 +34,16 @@ module DHT11 (
   wire sensor_out;
   wire divided_clock;
 
-  localparam  IDLE            = 0,
-              START_BIT       = 1,
-              SEND_HIGH_20US  = 2,
-              WAIT_LOW        = 3,
-              WAIT_HIGH       = 4,
-              END_SYNC        = 5,
-              WAIT_BIT        = 6,
-              READ_DATA       = 7,
-              COLECT_DATA     = 8,
-              FINISH          = 9;
+  localparam  IDLE            = 4'b0000,
+              START_BIT       = 4'b0001,
+              SEND_HIGH_20US  = 4'b0010,
+              WAIT_LOW        = 4'b0011,
+              WAIT_HIGH       = 4'b0100,
+              END_SYNC        = 4'b0101,
+              WAIT_BIT        = 4'b0110,
+              READ_DATA       = 4'b0111,
+              COLECT_DATA     = 4'b1000,
+              FINISH          = 4'b1001;
 
   TriState TS0 (
       .port(transmission_line),
