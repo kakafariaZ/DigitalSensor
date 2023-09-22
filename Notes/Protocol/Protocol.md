@@ -20,16 +20,14 @@
 
 | Code |                                    Description                                    |                           Response                           |
 | :--: | :-------------------------------------------------------------------------------: | :----------------------------------------------------------: |
-| 0x10 |                           Current status of the sensor                            | 0x11 - Sensor working normally / 0x12 - Sensor with problems |
-| 0x13 |                                 Temperature level                                 |                         Temperature                          |
-| 0x14 |                                  Humidity level                                   |                           Humidity                           |
-| 0x15 |  Confirmation of the activation of continuos monitoring of the temperature level  |                             0xCA                             |
-| 0x16 |   Confirmation of the activation of continuos monitoring of the humidity level    |                             0xCA                             |
-| 0x17 | Confirmation of the deactivation of continuos monitoring of the temperature level |                 0xEA - If not active! / 0xCA                 |
-| 0x18 |  Confirmation of the deactivation of continuos monitoring of the humidity level   |                 0xEA - If not active! / 0xCA                 |
-| 0xCA |                           Confirms the received request                           |                             NULL                             |
+| 0x10 |                           Current status of the sensor                            | 0xDF - Sensor working normally / 0xDE - Sensor with problems |
+| 0x11 |                                 Temperature level                                 |                         Temperature                          |
+| 0x12 |                                  Humidity level                                   |                           Humidity                           |
+| 0x15 | Confirmation of the deactivation of continuos monitoring of the temperature level |                 0xEA - If not active! / 0xCA                 |
+| 0x16 |  Confirmation of the deactivation of continuos monitoring of the humidity level   |                 0xEA - If not active! / 0xCA                 |
+| 0xCA |                        INFO: Confirms the received request                        |                             NULL                             |
 | 0xEA |            ERROR: Invalid action at the current state of the prototype            |                             NULL                             |
-| 0xEC |             ERROR: Command received isn't registered on the Protocol              |                             0xEC                             |
+| 0xEC |             ERROR: Command received isn't registered on the Protocol              |                             NULL                             |
 | 0xED |          ERROR: Device address received isn't registered on the Protocol          |                             NULL                             |
 
 ###### Available devices
