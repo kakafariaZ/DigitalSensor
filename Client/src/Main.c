@@ -151,6 +151,8 @@ int main(void) {
 
         break;
     }
+    printf("Press ENTER to go back to the menu...\n> ");
+    getchar();
 
   } while (request != 0);
 
