@@ -5,7 +5,7 @@
 *
 * Parameters:
 *   - `CLOCKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
-*     e.g.: 10 MHz Clock and 115,200 Baud UART
+*     e.g.: 50 MHz Clock and 115,200 Baud UART
 *     (50,000,000) / (115,200) = 434 `CLOCKS_PER_BIT`
 *
 * Source: https://nandland.com/uart-serial-port-module/
