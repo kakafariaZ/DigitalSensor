@@ -21,8 +21,8 @@ module UART_TB ();
   parameter BAUD_RATE = 115200;
   parameter CLOCKS_PER_BIT = (CLOCK_FREQUENCY / BAUD_RATE) + 1;
 
-  reg clock = 0;
-  reg has_data_tx = 0;
+  reg clock = 1'b0;
+  reg has_data_tx = 1'b0;
   reg [7:0] data_to_send = 7'd0;
 
   wire has_data_rx;
