@@ -48,6 +48,7 @@ module SensorDecoder (
 
   reg enable_sensor;
 
+  wire done;
   wire hold;
   wire error;
   wire data_valid;
@@ -67,7 +68,7 @@ module SensorDecoder (
   assign temp_float = sensor_data[15:8];
   assign checksum = sensor_data[7:0];
 
-  assign data_valid = (checksum == hum_int + hum_float + temp_int + temp_int) ? 1'b1 : 1'b0;
+  assign data_valid = (checksum == hum_int + hum_float + temp_int + temp_float) ? 1'b1 : 1'b0;
 
   localparam [2:0] IDLE = 3'b000, READ = 3'b001, LOOP = 3'b010, FINISH = 3'b011, STOP = 3'b100;
 
