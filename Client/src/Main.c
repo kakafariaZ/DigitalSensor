@@ -147,7 +147,7 @@ int main(void) {
         pthread_join(monitoring_thread, NULL);
         printf("Finishing continuous monitoring...\n");
 
-        dataToSend[0] = AVALIABLE_COMMANDS[request + 1];
+        dataToSend[0] = AVALIABLE_COMMANDS[request - 1];
 
         sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
         system("clear");
