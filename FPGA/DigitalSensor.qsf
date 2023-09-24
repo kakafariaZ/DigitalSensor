@@ -57,18 +57,9 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
 set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH UART_TB -section_id eda_simulation
-set_global_assignment -name EDA_TEST_BENCH_NAME ClockDividerTB -section_id eda_simulation
-set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id ClockDividerTB
-set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME ClockDividerTB -section_id ClockDividerTB
-set_global_assignment -name EDA_TEST_BENCH_NAME BinaryToDisplayTB -section_id eda_simulation
-set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id BinaryToDisplayTB
-set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME BinaryToDisplayTB -section_id BinaryToDisplayTB
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id UART_TB
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME UART_TB -section_id UART_TB
 set_global_assignment -name EDA_TEST_BENCH_NAME UART_TB -section_id eda_simulation
-set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/ClockDividerTB.v -section_id ClockDividerTB
-set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/BinaryToDisplayTB.v -section_id BinaryToDisplayTB
-set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/UART_TB.v -section_id UART_TB
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
@@ -82,4 +73,5 @@ set_global_assignment -name VERILOG_FILE modules/ClockDivider.v
 set_global_assignment -name VERILOG_FILE modules/SensorDecoder.v
 set_global_assignment -name VERILOG_FILE modules/RequestHandler.v
 set_global_assignment -name VERILOG_FILE modules/ResponseHandler.v
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenchs/UART_TB.v -section_id UART_TB
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
