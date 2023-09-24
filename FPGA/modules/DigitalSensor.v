@@ -28,8 +28,8 @@ module DigitalSensor (
     output wire transmission_done
 );
 
-  wire [7:0] data_received;
   wire has_data_rx;
+  wire [7:0] data_received;
 
   UART_RX RX0 (
       .clock(clock),
@@ -39,18 +39,18 @@ module DigitalSensor (
   );
 
   wire has_request;
-  wire enable_rh;
-  wire [7:0] received_data;
+  wire enable_req;
   wire device_selected;
+  wire [7:0] received_data;
   wire [7:0] request;
   wire [31:0] device_selector;
 
-  assign enable_rh = has_data_rx;
+  assign enable_req = has_data_rx;
   assign received_data = data_received;
 
   RequestHandler REQ0 (
       .clock(clock),
-      .enable(enable_rh),
+      .enable(enable_req),
       .received_data(received_data),
       .has_request(has_request),
       .request(request),
@@ -58,16 +58,16 @@ module DigitalSensor (
       .device_selector(device_selector)
   );
 
+  wire       enable_sd;
+  wire       finished;
   wire [7:0] response;
   wire [7:0] response_code;
-  wire       finished;
-  wire       enable;
 
-  assign enable = device_selected;
+  assign enable_sd = device_selected;
 
   SensorDecoder SD0 (
       .clock(clock),
-      .enable(enable),
+      .enable(enable_sd),
       .device_selector(device_selector),
       .transmission_line(transmission_line),
       .request(request),
@@ -76,27 +76,27 @@ module DigitalSensor (
       .finished(finished)
   );
 
+  wire enable_res;
   wire has_response;
   wire [7:0] data_to_send_rh;
-  wire response_ready;
   wire [7:0] response_rh;
 
-  assign has_response = finished;
+  assign enable_res = finished;
   assign data_to_send_rh = response;
 
   ResponseHandler RESH0 (
       .clock(clock),
-      .has_response(has_response),
-      .data_to_send(data_to_send_rh),
+      .enable(enable_res),
       .response_code(response_code),
-      .response_ready(response_ready),
+      .response_data(data_to_send_rh),
+      .has_response(has_response),
       .response(response_rh)
   );
 
   wire has_data_tx;
   wire [7:0] data_to_send_tx;
 
-  assign has_data_tx = response_ready;
+  assign has_data_tx = has_response;
   assign data_to_send_tx = response_rh;
 
   UART_TX TX0 (
