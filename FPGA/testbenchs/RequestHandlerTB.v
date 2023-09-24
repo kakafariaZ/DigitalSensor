@@ -1,3 +1,5 @@
+`timescale 1ns / 10ps
+
 module RequestHandlerTB ();
 
   parameter CLOCK_PERIOD = 20;

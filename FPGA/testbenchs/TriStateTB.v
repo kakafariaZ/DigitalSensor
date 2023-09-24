@@ -1,3 +1,5 @@
+`timescale 1ns / 10ps
+
 module TriStateTB;
 
   parameter CLOCK_PERIOD = 20;
