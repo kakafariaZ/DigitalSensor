@@ -14,44 +14,72 @@
 
 module RequestHandler (
     input wire clock,
-    input wire has_request,
+    input wire enable,
     input wire [7:0] received_data,
     output wire device_selected,
+    output reg has_request,
     output reg [7:0] request,
-    output reg [31:0] device_selector
+    output reg [31:0] device_selector,
+    output reg [2:0] debug_state
 );
 
-  reg [7:0] address = 8'b00000000;
+  reg [7:0] address;
 
-  localparam [2:0] REQUEST = 2'b00, ADDRESS = 2'b01, SELECT = 2'b10;
+  localparam [3:0] IDLE    = 3'b000,
+                   REQUEST = 3'b001,
+                   ADDRESS = 3'b010,
+                   SELECT  = 3'b011,
+                   FINISH  = 3'b100;
 
   reg [2:0] current_state;
 
+  initial begin
+    has_request = 1'b0;
+    request = 8'd0;
+    address = 8'd0;
+    device_selector = 32'd0;
+    current_state = IDLE;
+    debug_state = IDLE;
+  end
+
   always @(posedge clock) begin
-    if (has_request == 1'b1) begin
-      case (current_state)
-        REQUEST: begin
-          current_state <= ADDRESS;
-          request <= received_data;
+    debug_state <= current_state;
+    case (current_state)
+      IDLE: begin
+        has_request <= 1'b0;
+        if (enable == 1'b1) begin
+          current_state <= REQUEST;
+        end else begin
+          current_state <= IDLE;
+        end
+      end
+      REQUEST: begin
+        request <= received_data;
+        current_state <= ADDRESS;
+      end
+      ADDRESS: begin
+        address <= received_data;
+        current_state <= SELECT;
+      end
+      SELECT: begin
+        if (address == 8'b00100000) begin
+          device_selector[0] <= 1'b1;
+        end else begin
           device_selector <= 32'b00000000000000000000000000000000;
         end
-        ADDRESS: begin
-          current_state <= SELECT;
-          address <= received_data;
-        end
-        SELECT: begin
-          if (address == 8'b00100000) begin
-            device_selector[0] <= 1'b1;
-          end else begin
-            device_selector <= 32'b00000000000000000000000000000000;
-          end
-          current_state <= REQUEST;
-        end
-        default: begin
-          current_state <= REQUEST;
-        end
-      endcase
-    end
+        current_state <= FINISH;
+        has_request   <= 1'b1;
+      end
+      FINISH: begin
+        request = 8'd0;
+        address = 8'd0;
+        device_selector = 32'd0;
+        current_state = IDLE;
+      end
+      default: begin
+        current_state <= IDLE;
+      end
+    endcase
   end
 
   /**

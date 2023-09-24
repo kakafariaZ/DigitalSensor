@@ -20,7 +20,8 @@ module UART_RX #(
     input  wire       clock,
     input  wire       incoming_bit,
     output reg        has_data,
-    output reg  [7:0] data_received
+    output reg  [7:0] data_received,
+    output reg  [2:0] debug_state     // Used on simulations to view FSM transitions.
 );
 
   reg [2:0] current_index;
@@ -43,6 +44,7 @@ module UART_RX #(
   reg [2:0] current_state = IDLE;
 
   always @(posedge clock) begin
+    debug_state <= current_state;
     case (current_state)
       IDLE: begin
         has_data <= 1'b0;

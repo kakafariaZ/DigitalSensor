@@ -22,7 +22,8 @@ module UART_TX #(
     input  wire [7:0] data_to_send,
     output reg        sending_bit,
     output reg        is_transmitting,
-    output reg        transmission_done
+    output reg        transmission_done,
+    output reg  [2:0] debug_state         // Used on simulations to view FSM transitions.
 );
 
   reg [2:0] current_index;
@@ -38,6 +39,7 @@ module UART_TX #(
   reg [2:0] current_state = IDLE;
 
   always @(posedge clock) begin
+    debug_state <= current_state;
     case (current_state)
       IDLE: begin
         sending_bit <= 1'b1;

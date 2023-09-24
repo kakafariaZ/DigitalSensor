@@ -39,20 +39,22 @@ module DigitalSensor (
   );
 
   wire has_request;
+  wire enable_rh;
   wire [7:0] received_data;
   wire device_selected;
   wire [7:0] request;
   wire [31:0] device_selector;
 
-  assign has_request   = has_data_rx;
+  assign enable_rh = has_data_rx;
   assign received_data = data_received;
 
   RequestHandler REQ0 (
       .clock(clock),
-      .has_request(has_request),
+      .enable(enable_rh),
       .received_data(received_data),
-      .device_selected(device_selected),
+      .has_request(has_request),
       .request(request),
+      .device_selected(device_selected),
       .device_selector(device_selector)
   );
 
