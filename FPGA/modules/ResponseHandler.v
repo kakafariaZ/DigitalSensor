@@ -9,37 +9,52 @@
 
 module ResponseHandler (
     input wire clock,
-    input wire has_response,
-    input wire [7:0] data_to_send,
+    input wire enable,
     input wire [7:0] response_code,
-    output reg response_ready,
+    input wire [7:0] response_data,
+    output reg has_response,
     output reg [7:0] response
 );
 
-  localparam CODE = 1'b0, DATA = 1'b1;
+  localparam [1:0] IDLE = 2'b00, RESPONSE_CODE = 2'b01, RESPONSE_DATA = 2'b10, FINISH = 2'b11;
 
-  reg current_state;
+  reg [1:0] current_state;
+
+  initial begin
+    has_response <= 1'b0;
+    response <= 8'd0;
+    current_state <= IDLE;
+  end
 
   always @(posedge clock) begin
-    if (has_response == 1'b1) begin
-      case (current_state)
-        CODE: begin
-          current_state <= DATA;
-          response_ready <= 1'b1;
-          response <= response_code;
+    case (current_state)
+      IDLE: begin
+        has_response <= 1'b0;
+        if (enable == 1'b1) begin
+          current_state <= RESPONSE_CODE;
+        end else begin
+          current_state <= IDLE;
         end
-        DATA: begin
-          current_state <= CODE;
-          response_ready <= 1'b1;
-          response <= data_to_send;
-        end
-        default: begin
-          current_state <= CODE;
-          response_ready <= 1'b0;
-          response <= 8'hFF;
-        end
-      endcase
-    end
+      end
+      RESPONSE_CODE: begin
+        response <= response_code;
+        current_state <= RESPONSE_DATA;
+      end
+      RESPONSE_DATA: begin
+        has_response <= 1'b1;
+        response <= response_data;
+        current_state <= FINISH;
+      end
+      FINISH: begin
+        response <= 8'd0;
+        current_state <= IDLE;
+      end
+      default: begin
+        has_response <= 1'b0;
+        response <= 8'd0;
+        current_state <= IDLE;
+      end
+    endcase
   end
 
 endmodule
