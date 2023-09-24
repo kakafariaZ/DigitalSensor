@@ -39,8 +39,13 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer);
 // Handles the continuous monitoring using a separate thread.
 void *continuosMonitoring(void *args);
 
-// Holds all protocol commands
-const char available_commands[] = {REQ_STATUS, REQ_TEMP, REQ_HUM, REQ_ACT_MNTR_TEMP, REQ_ACT_MNTR_HUM, REQ_DEACT_MNTR_TEMP, REQ_DEACT_MNTR_HUM};
+// Holds all the available requests on the Protocol.
+const char AVALIABLE_COMMANDS[] = {REQ_STATUS,        REQ_TEMP,         REQ_HUM,
+                                   REQ_ACT_MNTR_TEMP, REQ_ACT_MNTR_HUM, REQ_DEACT_MNTR_TEMP,
+                                   REQ_DEACT_MNTR_HUM};
+
+// Holds the address of all the available sensors.
+char AVAILABLE_SENSORS[] = {0x20};
 
 int main(void) {
   int fileDescriptor;
@@ -49,8 +54,7 @@ int main(void) {
   int transmition_error;
   int temp, humi;
   int thread_information[2];
-  char availableSensors[] = {0x20};
-  char dataToSend[2], buffer[2];  // See: PROTOCOL.md
+  char dataToSend[2], buffer[2];
   pthread_t monitoring_thread;
 
   do {
@@ -72,21 +76,21 @@ int main(void) {
       scanf("%d%*c", &request);
     }
 
-    if (request != 0) {           // If the user don't quit...
-      openPort(&fileDescriptor);  // Opens the serial port
+    if (request != 0) {
+      openPort(&fileDescriptor);
       if (configureSerialPort(fileDescriptor)) {
-         return 1;  // Quit the program if cant configure port.
+        return 1;
       }
-      
-      // First byte of the communication is the command.
-      dataToSend[0] = available_commands[request-1];
-      // Second byte of the communication is the sensor address.
-      dataToSend[1] = availableSensors[chooseSensor()];
 
-      // Send the request to FPGA:
+      // First byte of the communication is the command.
+      dataToSend[0] = AVALIABLE_COMMANDS[request - 1];
+      // Second byte of the communication is the sensor address.
+      dataToSend[1] = AVAILABLE_SENSORS[chooseSensor()];
+
+      // Send the request to FPGA.
       transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
       if (transmition_error) {
-        printf("TRANSMITION ERROR!!\n");
+        printf("[ERROR]: Something went wrong during the transmission!\n");
         continue;
       }
     }
@@ -131,27 +135,28 @@ int main(void) {
 
         system("clear");
 
-        // Create a thread for continuous monitoring.
         if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) !=
             0) {
           perror("pthread_create");
           break;
         }
 
-        getchar();  // Waits for user's input to close the thread
+        getchar();  // Waits for user's input to close the thread.
 
         pthread_cancel(monitoring_thread);
         pthread_join(monitoring_thread, NULL);
-        printf("Finishing continuous monitoring");
+        printf("Finishing continuous monitoring...\n");
 
-        dataToSend[0] = available_commands[request + 1];
+        dataToSend[0] = AVALIABLE_COMMANDS[request + 1];
 
         sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
         system("clear");
 
         break;
     }
+
     printf("Press ENTER to go back to the menu...\n> ");
+
     getchar();
 
   } while (request != 0);
@@ -234,48 +239,59 @@ int chooseSensor() {
     printf("Choose the sensor:\n");
     printf("  1 - DHT11 (0x20)\n");
     printf("> ");
+
     scanf("%d%*c", &choosedSensor);
+
     choosedSensor--;
+
     if (choosedSensor < 0 || choosedSensor > QNT_SENSOR) {
-      printf("Please choose one of the following sensors...\n");
+      printf("Please choose one of the available sensors...\n");
       sleep(1);
       system("clear");
     }
   } while (choosedSensor < 0 || choosedSensor > QNT_SENSOR);
+
   return choosedSensor;
 }
 
 int handleTransmission(int *fd, char *dataToSend, char *buffer) {
   int bytes_written = sendData(*fd, dataToSend, PACKAGE_SIZE);
+
   if (bytes_written > 0) {
-    printf("Sent %d bytes:\n", bytes_written);  // debug
+    printf("Sent %d bytes:\n", bytes_written);  // DEBUG...
     for (int i = 0; i < bytes_written; i++) {
       printf(BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
       printf("%s", (i == bytes_written - 1) ? "\n" : " - ");
     }
   } else {
+    printf("[ERROR]: Failed to write %d bytes to the buffer!\n", PACKAGE_SIZE);
     return 1;
   }
+
   int bytes_read = receiveData(*fd, buffer, PACKAGE_SIZE);
+
   if (bytes_read > 0) {
-    printf("Received %d bytes:\n", bytes_read);  // debug:
+    printf("Received %d bytes:\n", bytes_read);  // DEBUG...
     for (int i = 0; i < bytes_read; i++) {
       printf(BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
       printf("%s", (i == bytes_written - 1) ? "\n" : " - ");
     }
   } else {
+    printf("[ERROR]: Failed to read %d bytes from the buffer!\n", PACKAGE_SIZE);
     return 1;
   }
+
   return 0;
 }
 
 void *continuosMonitoring(void *arg) {
-  int *information = (int *)arg;  // information 0 -> fd, information 1 -> type
+  int *information = (int *)arg;
   int data;
   char buffer[2];
 
   while (1) {
     system("clear");
+
     receiveData(information[0], buffer, PACKAGE_SIZE);
 
     if (buffer[0] != RESP_HUM && buffer[0] != RESP_TEMP) {
@@ -285,7 +301,7 @@ void *continuosMonitoring(void *arg) {
 
     data = (int)buffer[1];
 
-    if (information[1]) {  // 1 Stands for Temperature, 0 for Humidity
+    if (information[1]) {
       printf("Current temperature...\n");
       printf("   %d ºC\n", data);
     } else {
