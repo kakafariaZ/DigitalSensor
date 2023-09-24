@@ -14,7 +14,6 @@
 #define PACKAGE_SIZE 2
 
 int QNT_SENSOR = 1;
-// const unsigned char DATA_TO_SEND[] = {0x4F, 0x4B, 0x21};
 
 // Configure the settings for the communication with the serial port.
 int configureSerialPort(int fd);
@@ -40,12 +39,15 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer);
 // Handles the continuous monitoring using a separate thread.
 void *continuosMonitoring(void *args);
 
+// Holds all protocol commands
+const char available_commands[] = {REQ_STATUS, REQ_TEMP, REQ_HUM, REQ_ACT_MNTR_TEMP, REQ_ACT_MNTR_HUM, REQ_DEACT_MNTR_TEMP, REQ_DEACT_MNTR_HUM};
+
 int main(void) {
   int fileDescriptor;
   int request = 0;
   int choosedSensor;
   int transmition_error;
-  int whole_part, fractional_part;
+  int temp, humi;
   int thread_information[2];
   char availableSensors[] = {0x20};
   char dataToSend[2], buffer[2];  // See: PROTOCOL.md
@@ -73,107 +75,61 @@ int main(void) {
     if (request != 0) {           // If the user don't quit...
       openPort(&fileDescriptor);  // Opens the serial port
       if (configureSerialPort(fileDescriptor)) {
-        return 1;  // Quit the program if cant configure port.
+         return 1;  // Quit the program if cant configure port.
       }
+      
+      // First byte of the communication is the command.
+      dataToSend[0] = available_commands[request-1];
       // Second byte of the communication is the sensor address.
       dataToSend[1] = availableSensors[chooseSensor()];
+
+      // Send the request to FPGA:
+      transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
+      if (transmition_error) {
+        printf("TRANSMITION ERROR!!\n");
+        continue;
+      }
     }
 
     switch (request) {
       case 0:
         printf("Finishing...\n");
         break;
+
       case 1:
-        dataToSend[0] = REQ_STATUS;
-        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-
-        if (transmition_error) {
-          printf("An error occourred!\n");
-          return 1;
-        }
-
-        if (buffer[1] == REP_STATUS_OK)
+        if (buffer[1] == RESP_STATUS_OK)
           printf("Sensor working normally!\n");
-        else if (buffer[1] == REP_STATUS_ERROR)
+        else if (buffer[1] == RESP_STATUS_ERROR)
           printf("Sensor with problem!\n");
         else
           printf("Communication Error!\n");
         break;
+
       case 2:
-        dataToSend[0] = REQ_TEMP_INT;
-        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-        if (transmition_error) {
-          printf("An error occourred!\n");
-          return 1;
-        }
-
-        if (buffer[0] != REP_TEMP_INT) {
+        if (buffer[0] != RESP_TEMP)
           printf("Communication Error!\n");
-          break;
+        else {
+          temp = (int)buffer[1];
+          printf("Temperature of Sensor %d: \n", choosedSensor);
+          printf("   %d ºC\n", temp);
         }
-
-        whole_part = (int)buffer[1];
-        dataToSend[0] = REQ_TEMP_FLOAT;
-        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-        if (transmition_error) {
-          printf("An error occourred!\n");
-          return 1;
-        }
-
-        if (buffer[0] != REP_TEMP_FLOAT) {
-          printf("Communication Error!\n");
-          break;
-        }
-
-        fractional_part = (int)buffer[1];
-        printf("Temperature of Sensor %d: \n", choosedSensor);
-        printf("   %d.%d\n", whole_part, fractional_part);
         break;
+
       case 3:
-        dataToSend[0] = REQ_HUM_INT;
-        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-        if (transmition_error) {
-          printf("An error occourred!\n");
-          return 1;
-        }
-
-        if (buffer[0] != REP_HUM_INT) {
+        if (buffer[0] != RESP_HUM)
           printf("Communication Error!\n");
-          break;
+        else {
+          humi = (int)buffer[1];
+          printf("Humidity of Sensor %d: \n", choosedSensor);
+          printf("   %d %%\n", humi);
         }
-
-        whole_part = (int)buffer[1];
-        dataToSend[0] = REQ_HUM_FLOAT;
-        transmition_error = handleTransmission(&fileDescriptor, dataToSend, buffer);
-
-        if (transmition_error) {
-          printf("An error occourred!\n");
-          return 1;
-        }
-
-        if (buffer[0] != REP_HUM_FLOAT) {
-          printf("Communication Error!\n");
-          break;
-        }
-
-        fractional_part = (int)buffer[1];
-        printf("Humidity of Sensor %d: \n", choosedSensor);
-        printf("   %d.%d\n", whole_part, fractional_part);
         break;
+
       default:
         thread_information[0] = fileDescriptor;
-        if (request == 4) {
-          dataToSend[0] = REQ_ACT_MNTR_TEMP;
-          thread_information[1] = 1;
-        } else {
-          dataToSend[0] = REQ_ACT_MNTR_HUM;
-          thread_information[1] = 0;
-        }
+        thread_information[1] = (request == 4) ? 1 : 0;
 
         system("clear");
-        // asking for continuous monitoring.
-        sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(1);
 
         // Create a thread for continuous monitoring.
         if (pthread_create(&monitoring_thread, NULL, continuosMonitoring, thread_information) !=
@@ -188,17 +144,16 @@ int main(void) {
         pthread_join(monitoring_thread, NULL);
         printf("Finishing continuous monitoring");
 
-        if (request == 4)
-          dataToSend[0] = REQ_DEACT_MNTR_TEMP;
-        else
-          dataToSend[0] = REQ_DEACT_MNTR_HUM;
+        dataToSend[0] = available_commands[request + 1];
 
         sendData(fileDescriptor, dataToSend, PACKAGE_SIZE);
-        sleep(1);
         system("clear");
 
         break;
     }
+    printf("Press ENTER to go back to the menu...\n> ");
+    getchar();
+
   } while (request != 0);
 
   close(fileDescriptor);
@@ -316,37 +271,27 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
 
 void *continuosMonitoring(void *arg) {
   int *information = (int *)arg;  // information 0 -> fd, information 1 -> type
-  int whole_part;
-  int fractional_part;
+  int data;
   char buffer[2];
 
   while (1) {
     system("clear");
     receiveData(information[0], buffer, PACKAGE_SIZE);
 
-    if (buffer[0] != REP_ACT_MNTR_TEMP && buffer[0] != REP_ACT_MNTR_HUM) {
+    if (buffer[0] != RESP_HUM && buffer[0] != RESP_TEMP) {
       printf("Communication Error!\n");
       continue;
     }
 
-    whole_part = (int)buffer[1];
-    sleep(1);
-    receiveData(information[0], buffer, PACKAGE_SIZE);
-
-    if (buffer[0] != REP_ACT_MNTR_TEMP && buffer[0] != REP_ACT_MNTR_HUM) {
-      printf("Communication Error!\n");
-      continue;
-    }
-
-    fractional_part = (int)buffer[1];
+    data = (int)buffer[1];
 
     if (information[1]) {  // 1 Stands for Temperature, 0 for Humidity
-      printf("Actual temperature...\n");
+      printf("Current temperature...\n");
+      printf("   %d ºC\n", data);
     } else {
-      printf("Actual Humidity...\n");
+      printf("Current humidity...\n");
+      printf("   %d %%\n", data);
     }
-
-    printf("   %d.%d\n", whole_part, fractional_part);
 
     sleep(1);
   }
