@@ -45,7 +45,7 @@ const char AVALIABLE_COMMANDS[] = {REQ_STATUS,        REQ_TEMP,         REQ_HUM,
                                    REQ_DEACT_MNTR_HUM};
 
 // Holds the address of all the available sensors.
-char AVAILABLE_SENSORS[] = {0x20};
+const char AVAILABLE_SENSORS[] = {0x20};
 
 int main(void) {
   int fileDescriptor;
