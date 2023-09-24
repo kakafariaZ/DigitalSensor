@@ -13,7 +13,8 @@ module ResponseHandler (
     input wire [7:0] response_code,
     input wire [7:0] response_data,
     output reg has_response,
-    output reg [7:0] response
+    output reg [7:0] response,
+    output reg [1:0] debug_state
 );
 
   localparam [1:0] IDLE = 2'b00, RESPONSE_CODE = 2'b01, RESPONSE_DATA = 2'b10, FINISH = 2'b11;
@@ -21,15 +22,16 @@ module ResponseHandler (
   reg [1:0] current_state;
 
   initial begin
-    has_response <= 1'b0;
-    response <= 8'd0;
-    current_state <= IDLE;
+    has_response = 1'b0;
+    response = 8'd0;
+    current_state = IDLE;
+    debug_state = current_state;
   end
 
   always @(posedge clock) begin
+    debug_state <= current_state;
     case (current_state)
       IDLE: begin
-        has_response <= 1'b0;
         if (enable == 1'b1) begin
           current_state <= RESPONSE_CODE;
         end else begin
@@ -37,15 +39,16 @@ module ResponseHandler (
         end
       end
       RESPONSE_CODE: begin
+        has_response <= 1'b1;
         response <= response_code;
         current_state <= RESPONSE_DATA;
       end
       RESPONSE_DATA: begin
-        has_response <= 1'b1;
         response <= response_data;
         current_state <= FINISH;
       end
       FINISH: begin
+        has_response <= 1'b0;
         response <= 8'd0;
         current_state <= IDLE;
       end

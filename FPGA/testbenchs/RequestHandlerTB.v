@@ -6,7 +6,7 @@ module RequestHandlerTB ();
 
   reg clock = 1'b0;
   reg enable = 1'b0;
-  reg [7:0] received_data = 7'd0;
+  reg [7:0] received_data = 8'd0;
 
   wire device_selected;
   wire has_request;
@@ -42,7 +42,7 @@ module RequestHandlerTB ();
 
     #(CLOCK_PERIOD * 6);
 
-    @(posedge clock)
+    @(posedge clock);
     enable = 1'b0;
 
     $stop;
