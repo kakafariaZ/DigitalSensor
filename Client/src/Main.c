@@ -260,7 +260,8 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
   if (bytes_written > 0) {
     printf("Sent %d bytes:\n", bytes_written);  // DEBUG...
     for (int i = 0; i < bytes_written; i++) {
-      printf(BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
+      // printf(BINARY_PATTERN, BYTE_TO_BINARY(buffer[i]));
+      printf("0x%X", dataToSend[i]);
       printf("%s", (i == bytes_written - 1) ? "\n" : " - ");
     }
   } else {
@@ -268,12 +269,15 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
     return 1;
   }
 
+  sleep(5);
+
   int bytes_read = receiveData(*fd, buffer, PACKAGE_SIZE);
 
   if (bytes_read > 0) {
     printf("Received %d bytes:\n", bytes_read);  // DEBUG...
     for (int i = 0; i < bytes_read; i++) {
-      printf(BINARY_PATTERN, BYTE_TO_BINARY(dataToSend[i]));
+      // printf(BINARY_PATTERN, BYTE_TO_BINARY(buffer[i]));
+			printf("0x%X", buffer[i]);
       printf("%s", (i == bytes_written - 1) ? "\n" : " - ");
     }
   } else {
