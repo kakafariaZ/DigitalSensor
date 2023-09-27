@@ -9,29 +9,26 @@
 | Code |                       Description                        |
 | :--: | :------------------------------------------------------: |
 | 0x00 |         Request the current state of the sensor          |
-| 0x01 |    Request the current temperature level - Whole part    |
-| 0x02 | Request the current temperature level - Fractional part  |
-| 0x03 |     Request the current humidity level - Whole part      |
-| 0x04 |     Request the current humidity level - Fractional      |
-| 0x05 |  Activate continuos monitoring of the temperature level  |
-| 0x06 |   Activate continuos monitoring of the humidity level    |
-| 0x07 | Deactivate continuos monitoring of the temperature level |
-| 0x08 |  Deactivate continuos monitoring of the humidity level   |
+| 0x01 |          Request the current temperature level           |
+| 0x02 |            Request the current humidity level            |
+| 0x03 |  Activate continuos monitoring of the temperature level  |
+| 0x04 |   Activate continuos monitoring of the humidity level    |
+| 0x05 | Deactivate continuos monitoring of the temperature level |
+| 0x06 |  Deactivate continuos monitoring of the humidity level   |
 
 ###### Response commands
 
-| Code |                                    Description                                    |
-| :--: | :-------------------------------------------------------------------------------: |
-| 0x10 |                               Sensor with problems                                |
-| 0x11 |                              Sensor working normally                              |
-| 0x12 |                          Temperature level - Whole part                           |
-| 0x13 |                        Temperature level - Fractional part                        |
-| 0x14 |                            Humidity level - Whole part                            |
-| 0x15 |                         Humidity level - Fractional part                          |
-| 0x16 |  Confirmation of the activation of continuos monitoring of the temperature level  |
-| 0x17 |   Confirmation of the activation of continuos monitoring of the humidity level    |
-| 0x18 | Confirmation of the deactivation of continuos monitoring of the temperature level |
-| 0x19 |  Confirmation of the deactivation of continuos monitoring of the humidity level   |
+| Code |                                    Description                                    |                           Response                           |
+| :--: | :-------------------------------------------------------------------------------: | :----------------------------------------------------------: |
+| 0x10 |                           Current status of the sensor                            | 0xDF - Sensor working normally / 0xDE - Sensor with problems |
+| 0x11 |                                 Temperature level                                 |                         Temperature                          |
+| 0x12 |                                  Humidity level                                   |                           Humidity                           |
+| 0x15 | Confirmation of the deactivation of continuos monitoring of the temperature level |                 0xEA - If not active! / 0xCA                 |
+| 0x16 |  Confirmation of the deactivation of continuos monitoring of the humidity level   |                 0xEA - If not active! / 0xCA                 |
+| 0xCA |                        INFO: Confirms the received request                        |                             NULL                             |
+| 0xEA |            ERROR: Invalid action at the current state of the prototype            |                             NULL                             |
+| 0xEC |             ERROR: Command received isn't registered on the Protocol              |                             NULL                             |
+| 0xED |          ERROR: Device address received isn't registered on the Protocol          |                             NULL                             |
 
 ###### Available devices
 

@@ -5,13 +5,13 @@
 *
 * Parameters:
 *   - `CLOCKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
-*     e.g.: 10 MHz Clock and 115,200 Baud UART
+*     e.g.: 50 MHz Clock and 115,200 Baud UART
 *     (50,000,000) / (115,200) = 434 `CLOCKS_PER_BIT`
 *
 * Source: https://nandland.com/uart-serial-port-module/
 *
-* NOTE: Minor modifications were made to the original code to suit the targeted problem and for
-* better understanding of the working group.
+* NOTE: Modifications were made to the original code to suit the targeted problem and for better
+* understanding of the working group.
 */
 
 module UART_RX #(
@@ -20,7 +20,8 @@ module UART_RX #(
     input  wire       clock,
     input  wire       incoming_bit,
     output reg        has_data,
-    output reg  [7:0] data_received
+    output reg  [7:0] data_received,
+    output reg  [2:0] debug_state     // Used on simulations to view FSM transitions.
 );
 
   reg [2:0] current_index;
@@ -43,6 +44,7 @@ module UART_RX #(
   reg [2:0] current_state = IDLE;
 
   always @(posedge clock) begin
+    debug_state <= current_state;
     case (current_state)
       IDLE: begin
         has_data <= 1'b0;

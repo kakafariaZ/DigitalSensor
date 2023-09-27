@@ -6,48 +6,58 @@
 * It sends the corresponding response code and the decoded information back to the 'Client', by
 * handing it to the `UART_TX` module.
 */
+
 module ResponseHandler (
     input wire clock,
-    input wire has_response,
-    input wire [7:0] request_code,
-    input wire [7:0] data_to_send,
-    output reg response_ready,
-    output reg [7:0] response
+    input wire enable,
+    input wire [7:0] response_code,
+    input wire [7:0] response_data,
+    output reg has_response,
+    output reg [7:0] response,
+    output reg [1:0] debug_state
 );
 
-  localparam TYPE = 1'b0, DATA = 1'b1;
+  localparam [1:0] IDLE = 2'b00, RESPONSE_CODE = 2'b01, RESPONSE_DATA = 2'b10, FINISH = 2'b11;
 
-  reg current_state;
+  reg [1:0] current_state;
+
+  initial begin
+    has_response = 1'b0;
+    response = 8'd0;
+    current_state = IDLE;
+    debug_state = current_state;
+  end
 
   always @(posedge clock) begin
-    if (has_response == 1'b1) begin
-      case (current_state)
-        TYPE: begin
-          case (request_code)
-            8'h00:   response <= 8'h00;  // WARN: Request sensor current state...
-            8'h01:   response <= 8'h12;
-            8'h02:   response <= 8'h13;
-            8'h03:   response <= 8'h14;
-            8'h04:   response <= 8'h15;
-            8'h05:   response <= 8'h16;
-            8'h06:   response <= 8'h17;
-            8'h07:   response <= 8'h18;
-            8'h08:   response <= 8'h19;
-            default: response <= 8'b00000000;
-          endcase
-          current_state  <= DATA;
-          response_ready <= 1'b1;
+    debug_state <= current_state;
+    case (current_state)
+      IDLE: begin
+        if (enable == 1'b1) begin
+          current_state <= RESPONSE_CODE;
+        end else begin
+          current_state <= IDLE;
         end
-        DATA: begin
-          current_state <= TYPE;
-          response_ready <= 1'b1;
-          response <= data_to_send;
-        end
-        default: begin
-          current_state <= TYPE;
-        end
-      endcase
-    end
+      end
+      RESPONSE_CODE: begin
+        has_response <= 1'b1;
+        response <= response_code;
+        current_state <= RESPONSE_DATA;
+      end
+      RESPONSE_DATA: begin
+        response <= response_data;
+        current_state <= FINISH;
+      end
+      FINISH: begin
+        has_response <= 1'b0;
+        response <= 8'd0;
+        current_state <= IDLE;
+      end
+      default: begin
+        has_response <= 1'b0;
+        response <= 8'd0;
+        current_state <= IDLE;
+      end
+    endcase
   end
 
 endmodule

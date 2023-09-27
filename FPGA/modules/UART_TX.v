@@ -5,13 +5,13 @@
 *
 * Parameters:
 *   - `CLOCKS_PER_BIT` = (Frequency of Clock) / (Frequency of UART)
-*     e.g.: 10 MHz Clock and 115,200 Baud UART
+*     e.g.: 50 MHz Clock and 115,200 Baud UART
 *     (50,000,000) / (115,200) = 434 `CLOCKS_PER_BIT`
 *
 * Source: https://nandland.com/uart-serial-port-module/
 *
-* NOTE: Minor modifications were made to the original code to suit the targeted problem and for
-* better understanding of the working group.
+* NOTE: Modifications were made to the original code to suit the targeted problem and for better
+* understanding of the working group.
 */
 
 module UART_TX #(
@@ -22,7 +22,8 @@ module UART_TX #(
     input  wire [7:0] data_to_send,
     output reg        sending_bit,
     output reg        is_transmitting,
-    output reg        transmission_done
+    output reg        transmission_done,
+    output reg  [2:0] debug_state         // Used on simulations to view FSM transitions.
 );
 
   reg [2:0] current_index;
@@ -38,6 +39,7 @@ module UART_TX #(
   reg [2:0] current_state = IDLE;
 
   always @(posedge clock) begin
+    debug_state <= current_state;
     case (current_state)
       IDLE: begin
         sending_bit <= 1'b1;
