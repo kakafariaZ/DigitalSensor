@@ -155,9 +155,11 @@ int main(void) {
         break;
     }
 
-    printf("Press ENTER to go back to the menu...\n> ");
+    if (request != 0) {
+      printf("Press ENTER to go back to the menu...\n> ");
 
-    getchar();
+      getchar();
+    }
 
   } while (request != 0);
 
@@ -277,7 +279,7 @@ int handleTransmission(int *fd, char *dataToSend, char *buffer) {
     printf("Received %d bytes:\n", bytes_read);  // DEBUG...
     for (int i = 0; i < bytes_read; i++) {
       // printf(BINARY_PATTERN, BYTE_TO_BINARY(buffer[i]));
-			printf("0x%X", buffer[i]);
+      printf("0x%X", buffer[i]);
       printf("%s", (i == bytes_written - 1) ? "\n" : " - ");
     }
   } else {
