@@ -66,3 +66,10 @@
 | 0x3D | 8'b00111101 | Undefined |
 | 0x3E | 8'b00111110 | Undefined |
 | 0x3F | 8'b00111111 | Undefined |
+
+## Communication is done using 2 bytes for request and 2 bytes as response.
+## The commands are composed of 1 byte with the requested request or response obtained + 1 byte with the sensor address.
+
+## If, for example, the request asks the sensor for its current state, it would then send 1 byte with the address of the sensor that you want to obtain information about. If you want to obtain the current state of the sensor, the address would be sent along with the code 0x00.
+
+## The response then consists of the address of the sensor that was requested, together with the corresponding response code. The response could be negative by presenting NULL or it could be returned as the sensor address along with the code 0x10.
