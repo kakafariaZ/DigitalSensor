@@ -115,6 +115,30 @@ The response then consists of the status of the sensor, along with the correspon
 | 0x3E | 8'b00111110 | Undefined |
 | 0x3F | 8'b00111111 | Undefined |
 
+## Code in C
+
+This C code is a program that interacts with an FPGA (Field-Programmable Gate Array) device through a serial port (UART) to perform communication and control.
+The code includes several standard C libraries as well as custom header files (such as "Codes.h" and "Utils.h") that contain custom definitions and functions.
+
+Several constants were defined, including the serial port name ("/dev/ttyS0"), the maximum buffer size, the communication packet size, and other constants related to the application, such as available commands and available sensors.
+
+Some functions have been defined to configure the serial port, send and receive data, open the serial port, handle continuous communication, select a sensor, handle transmission and other tasks related to serial communication and control.
+
+The main function is where the main logic of the program is contained. It runs an infinite loop that displays a menu of options to the user, reads the user's choice, and takes actions based on the choice. Options include requesting status, temperature and humidity, enabling continuous temperature and humidity monitoring, and exiting the program.
+
+Before starting communication with the FPGA, the serial port is opened and configured using the `openPort` and `configureSerialPort` functions. The `handleTransmission` function is used to send commands and receive responses from the FPGA through the serial port. It also displays sent and received data for debugging.
+
+When the user selects the continuous monitoring option, a separate topic (`continuosMonitoring`) is created to display real-time temperature or humidity data, depending on the user's choice. The program continues running until the user chooses to exit. When this happens, the serial port is closed and the program exits.
+
+## Observation:
+The description of the Verilog codes are contained in the .v files themselves in the form of comments.
+
+# Conclusion:
+
+Although it was not possible to complete the work, given all the difficulties in developing the solution, such as withdrawals from the beginning and then almost at the end and learning difficulties, this work was extremely important for the development of collective work , deadline planning and resilience.
+
+It is worth mentioning that even what did not work or did not meet the expected result provides the student with invaluable knowledge. Error is one of the main ways of learning and if this error is resolved, educational prestige is also obtained. To conclude, despite the diversity of the work, it was possible to learn several lessons inside and outside the classroom.
+
 <div align="center">
 
 [![Activity](https://img.shields.io/github/last-commit/gersonfaneto/DigitalSensor?color=blue&style=for-the-badge&logo=git)](https://github.com/gersonfaneto/DigitalSensor/commit/main)
